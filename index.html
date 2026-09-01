@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Rally"/><!-- BRAND: 1 of 2 -->
+<meta name="theme-color" content="#0A0B0F"/>
+<link rel="apple-touch-icon" href="icon-180.png"/>
+<title>Rally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A0B0F; --surface:#13151B; --surface2:#1B1E26; --surface3:#242833;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+  --text:#F4F3F0; --muted:#9AA0AE; --dim:#6B7280;
+  --flare:#FF6A3D; --flare2:#FFA14A; --flare-soft:rgba(255,106,61,.14);
+  --live:#9BE84B; --amber:#FFC24B; --wave:#4CD6F5; --violet:#8B7BFF;
+  --r-xl:32px; --r-lg:26px; --r-md:20px; --r-sm:14px; --pill:999px;
+  --nav-h:78px; --safe-top:14px;
+  --ease:cubic-bezier(.22,.9,.28,1);
+  --shadow:0 18px 40px -18px rgba(0,0,0,.85);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0; background:#050609; color:var(--text);
+  font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  display:flex; align-items:center; justify-content:center; min-height:100dvh;
+  overflow:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:-20%;
+  background:
+    radial-gradient(50% 40% at 22% 18%, rgba(255,106,61,.16), transparent 70%),
+    radial-gradient(45% 40% at 82% 78%, rgba(76,214,245,.12), transparent 70%),
+    radial-gradient(40% 35% at 60% 10%, rgba(139,123,255,.10), transparent 70%);
+  filter:blur(10px); pointer-events:none;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,textarea{font:inherit;color:inherit}
+
+/* ============ PHONE SHELL ============ */
+.phone{
+  position:relative; width:390px; height:844px; max-height:100dvh;
+  background:var(--ink); border-radius:52px; overflow:hidden;
+  box-shadow:0 0 0 10px #16181d, 0 0 0 12px #2b2f38, 0 50px 120px -30px rgba(0,0,0,.95);
+  isolation:isolate;
+}
+@media (max-width:520px), (max-height:880px){
+  .phone{width:100vw;height:100dvh;border-radius:0;box-shadow:none;max-height:none}
+  .statusbar{padding-top:max(10px,env(safe-area-inset-top))}
+}
+.statusbar{
+  position:absolute;top:0;left:0;right:0;height:50px;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 30px 0; font-size:14px;font-weight:700;letter-spacing:.2px;
+  pointer-events:none;
+}
+.statusbar .sb-r{display:flex;gap:6px;align-items:center;opacity:.9}
+.bars{display:flex;gap:2px;align-items:flex-end;height:11px}
+.bars i{width:3px;background:var(--text);border-radius:1px;display:block}
+.bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}
+.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:11px}
+.batt{width:24px;height:12px;border:1.6px solid rgba(255,255,255,.6);border-radius:3px;position:relative;padding:1.6px}
+.batt::after{content:'';position:absolute;right:-4px;top:3.5px;width:2px;height:5px;background:rgba(255,255,255,.45);border-radius:0 2px 2px 0}
+.batt span{display:block;height:100%;width:78%;background:var(--text);border-radius:1px}
+
+/* ============ SCREENS ============ */
+.viewport{position:absolute;inset:0;overflow:hidden}
+.screen{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  padding-top:50px; padding-bottom:var(--nav-h);
+}
+.screen.active{display:flex}
+.screen.enter{animation:screenIn .34s var(--ease) both}
+@keyframes screenIn{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.pad{padding:0 20px}
+.stag>*{animation:cardIn .42s var(--ease) both}
+.stag>*:nth-child(1){animation-delay:.02s}.stag>*:nth-child(2){animation-delay:.06s}
+.stag>*:nth-child(3){animation-delay:.10s}.stag>*:nth-child(4){animation-delay:.14s}
+.stag>*:nth-child(5){animation-delay:.18s}.stag>*:nth-child(6){animation-delay:.22s}
+.stag>*:nth-child(7){animation-delay:.26s}.stag>*:nth-child(8){animation-delay:.30s}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ============ HEADER ============ */
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;padding:8px 20px 14px}
+.hdr h1{
+  font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+  font-size:30px;line-height:1.05;letter-spacing:-.8px;margin:0;
+}
+.hdr .sub{font-size:13.5px;color:var(--muted);margin-top:4px;font-weight:500}
+.hdr-actions{display:flex;gap:8px;align-items:center}
+.iconbtn{
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface2);border:1px solid var(--line);position:relative;
+  transition:transform .15s var(--ease),background .2s;
+}
+.iconbtn:active{transform:scale(.9);background:var(--surface3)}
+.iconbtn .dot{
+  position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--flare);border:2px solid var(--surface2);
+}
+.iconbtn svg{width:19px;height:19px;stroke:var(--text);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ BOTTOM NAV ============ */
+.nav{
+  position:absolute;left:0;right:0;bottom:0;height:var(--nav-h);z-index:50;
+  display:flex;align-items:flex-start;justify-content:space-around;padding:9px 10px 0;
+  background:linear-gradient(to top,rgba(10,11,15,.98) 55%,rgba(10,11,15,.6));
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-top:1px solid var(--line);
+}
+.nav button{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:6px 0;color:var(--dim);position:relative;transition:color .22s;
+}
+.nav button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s var(--ease)}
+.nav button span{font-size:10.5px;font-weight:700;letter-spacing:.1px}
+.nav button.on{color:var(--text)}
+.nav button.on svg{stroke:var(--flare);transform:translateY(-2px)}
+.nav button.on::after{
+  content:'';position:absolute;top:0;width:22px;height:3px;border-radius:0 0 4px 4px;
+  background:var(--flare);box-shadow:0 0 14px 1px rgba(255,106,61,.7);
+  animation:tabPop .34s var(--ease) both;
+}
+@keyframes tabPop{from{width:0;opacity:0}to{width:22px;opacity:1}}
+.nav .navdot{position:absolute;top:4px;right:calc(50% - 17px);width:7px;height:7px;border-radius:50%;background:var(--flare)}
+
+/* ============ PRIMITIVES ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  height:50px;padding:0 20px;border-radius:var(--pill);font-weight:750;font-size:15px;
+  transition:transform .14s var(--ease),filter .2s,background .2s;
+}
+.btn:active{transform:scale(.965)}
+.btn-primary{background:linear-gradient(100deg,var(--flare),var(--flare2));color:#160B05;box-shadow:0 10px 26px -12px rgba(255,122,61,.9)}
+.btn-ghost{background:var(--surface2);border:1px solid var(--line);color:var(--text)}
+.btn-ai{background:linear-gradient(100deg,rgba(76,214,245,.18),rgba(139,123,255,.16));border:1px solid rgba(76,214,245,.4);color:#BFEEFB}
+.btn-block{width:100%}
+.btn-sm{height:38px;font-size:13.5px;padding:0 15px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.pillrow{display:flex;gap:8px;overflow-x:auto;padding:2px 20px 2px;scrollbar-width:none}
+.pillrow::-webkit-scrollbar{display:none}
+.pill{
+  flex:0 0 auto;height:38px;padding:0 15px;border-radius:var(--pill);
+  background:var(--surface2);border:1px solid var(--line);
+  font-size:13.5px;font-weight:650;color:var(--muted);display:inline-flex;align-items:center;gap:6px;
+  transition:all .2s var(--ease);
+}
+.pill:active{transform:scale(.94)}
+.pill.on{background:var(--text);color:#0A0B0F;border-color:transparent}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;
+  font-size:11.5px;font-weight:750;background:var(--surface3);color:var(--muted);
+}
+.badge.live{background:rgba(155,232,75,.14);color:var(--live)}
+.badge.ai{background:rgba(76,214,245,.13);color:var(--wave)}
+.badge.flare{background:var(--flare-soft);color:var(--flare2)}
+.sectionhead{display:flex;align-items:baseline;justify-content:space-between;padding:24px 20px 12px}
+.sectionhead h2{font-size:18.5px;font-weight:800;margin:0;letter-spacing:-.35px}
+.sectionhead button{font-size:13px;font-weight:700;color:var(--flare2)}
+.avatar{
+  border-radius:50%;display:grid;place-items:center;font-weight:800;color:#0A0B0F;
+  flex:0 0 auto;position:relative;font-size:13px;letter-spacing:-.3px;
+}
+.avatar.ring::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--live)}
+.presence{
+  position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;
+  border:2.5px solid var(--surface);
+}
+.p-live{background:var(--live)}.p-recent{background:var(--amber)}.p-off{background:#4B5160}
+.stack{display:flex}
+.stack .avatar{margin-left:-9px;border:2px solid var(--surface)}
+.stack .avatar:first-child{margin-left:0}
+.meta{font-size:12.5px;color:var(--muted);font-weight:550}
+/* ============ MAP ============ */
+#map .maparea{position:absolute;inset:0;overflow:hidden;background:#0C1016}
+#map .scroll{display:none}
+.mapsvg{position:absolute;top:-6%;left:-6%;width:112%;height:112%;
+  animation:mapDrift 34s ease-in-out infinite alternate}
+@keyframes mapDrift{from{transform:scale(1) translate(0,0)}to{transform:scale(1.05) translate(-1.5%,-1.5%)}}
+.mapvig{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(78% 55% at 50% 42%,transparent 40%,rgba(6,8,12,.72) 100%),
+  linear-gradient(to bottom,rgba(10,11,15,.85),transparent 22%,transparent 62%,rgba(10,11,15,.92))}
+.marker{position:absolute;transform:translate(-50%,-50%);z-index:5;animation:mkIn .5s var(--ease) both}
+@keyframes mkIn{from{opacity:0;transform:translate(-50%,-30%) scale(.6)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.marker button{display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .18s var(--ease)}
+.marker button:active{transform:scale(.9)}
+.mk-av{
+  width:50px;height:50px;border-radius:50%;display:grid;place-items:center;
+  font-weight:800;color:#0A0B0F;font-size:15px;position:relative;
+  box-shadow:0 8px 22px -6px rgba(0,0,0,.9);
+}
+.mk-av::before{content:'';position:absolute;inset:-3.5px;border-radius:50%;border:3px solid var(--live);}
+.mk-av.recent::before{border-color:var(--amber)}
+.mk-av.off::before{border-color:#4B5160}
+.mk-av .halo{position:absolute;inset:-3.5px;border-radius:50%;border:3px solid var(--live);animation:halo 2.6s ease-out infinite}
+@keyframes halo{0%{transform:scale(1);opacity:.75}80%,100%{transform:scale(2.1);opacity:0}}
+.mk-name{
+  font-size:11.5px;font-weight:750;padding:3px 9px;border-radius:var(--pill);
+  background:rgba(14,16,22,.82);border:1px solid var(--line-2);backdrop-filter:blur(8px);white-space:nowrap;
+}
+.mk-cluster .mk-av{background:linear-gradient(140deg,#2B3040,#1B1E26);color:var(--text);border:2px solid var(--line-2)}
+.mk-cluster .mk-av::before{border-color:var(--wave)}
+.mk-place{
+  display:flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 8px;border-radius:var(--pill);
+  background:rgba(14,16,22,.86);border:1px solid var(--line-2);backdrop-filter:blur(10px);
+  font-size:12px;font-weight:700;box-shadow:0 8px 20px -10px #000;
+}
+.mk-place .em{font-size:14px}
+.mk-place.event{border-color:rgba(139,123,255,.55);background:rgba(30,24,52,.86);color:#CFC6FF}
+.me-dot{position:absolute;transform:translate(-50%,-50%);z-index:4}
+.me-dot i{display:block;width:20px;height:20px;border-radius:50%;background:var(--flare);border:3px solid #fff;box-shadow:0 0 0 6px rgba(255,106,61,.22),0 6px 18px rgba(255,106,61,.5)}
+.me-dot .beam{position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(255,106,61,.34),transparent 70%);animation:halo 3.4s ease-out infinite}
+.map-top{position:absolute;top:56px;left:0;right:0;z-index:20;padding:0 20px;display:flex;gap:10px;align-items:center}
+.searchbar{
+  flex:1;height:48px;border-radius:var(--pill);display:flex;align-items:center;gap:10px;padding:0 16px;
+  background:rgba(19,21,27,.86);border:1px solid var(--line-2);backdrop-filter:blur(20px);
+  font-size:14.5px;color:var(--muted);font-weight:600;box-shadow:var(--shadow);
+}
+.searchbar svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2}
+.map-ctrls{position:absolute;right:20px;bottom:calc(var(--nav-h) + 132px);z-index:20;display:flex;flex-direction:column;gap:10px}
+.mapbtn{
+  width:46px;height:46px;border-radius:16px;display:grid;place-items:center;
+  background:rgba(19,21,27,.88);border:1px solid var(--line-2);backdrop-filter:blur(16px);box-shadow:var(--shadow);
+  transition:transform .15s var(--ease);
+}
+.mapbtn:active{transform:scale(.9)}
+.mapbtn svg{width:20px;height:20px;stroke:var(--text);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mapbtn.accent svg{stroke:var(--flare)}
+.friendrail{
+  position:absolute;left:0;right:0;bottom:calc(var(--nav-h) + 14px);z-index:20;
+}
+.sharechip{
+  margin:0 20px 12px;height:52px;border-radius:var(--pill);display:flex;align-items:center;gap:11px;padding:0 8px 0 14px;
+  background:rgba(19,21,27,.9);border:1px solid var(--line-2);backdrop-filter:blur(20px);box-shadow:var(--shadow);
+}
+.sharechip .lbl{flex:1;min-width:0}
+.sharechip .lbl b{display:block;font-size:13.5px;font-weight:750}
+.sharechip .lbl span{font-size:11.5px;color:var(--muted)}
+.rail{display:flex;gap:10px;overflow-x:auto;padding:0 20px 2px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.railcard{
+  flex:0 0 auto;display:flex;align-items:center;gap:9px;height:52px;padding:0 15px 0 8px;border-radius:var(--pill);
+  background:rgba(19,21,27,.9);border:1px solid var(--line-2);backdrop-filter:blur(20px);
+  transition:transform .16s var(--ease);
+}
+.railcard:active{transform:scale(.95)}
+.railcard b{font-size:13.5px;display:block}
+.railcard span{font-size:11px;color:var(--muted);display:block}
+
+/* ============ DISCOVER ============ */
+.aiband{
+  margin:4px 20px 0;border-radius:var(--r-lg);padding:18px 18px 16px;position:relative;overflow:hidden;
+  background:linear-gradient(150deg,rgba(76,214,245,.14),rgba(139,123,255,.10) 55%,rgba(255,106,61,.10));
+  border:1px solid rgba(76,214,245,.26);
+}
+.aiband::after{
+  content:'';position:absolute;top:-60%;left:-30%;width:60%;height:220%;transform:rotate(18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);
+  animation:sheen 6s ease-in-out infinite;
+}
+@keyframes sheen{0%{left:-40%}55%,100%{left:130%}}
+.aiband h3{margin:0;font-size:21px;font-weight:800;letter-spacing:-.4px;font-family:'Bricolage Grotesque',sans-serif}
+.aiband p{margin:5px 0 14px;font-size:13px;color:#A9C3CE}
+.promptwrap{display:flex;gap:8px;flex-wrap:wrap}
+.prompt{
+  height:36px;padding:0 13px;border-radius:var(--pill);font-size:13px;font-weight:650;
+  background:rgba(10,14,18,.55);border:1px solid rgba(76,214,245,.3);color:#CFEAF3;
+  transition:transform .15s var(--ease),background .2s;
+}
+.prompt:active{transform:scale(.94);background:rgba(76,214,245,.2)}
+.hrail{display:flex;gap:14px;overflow-x:auto;padding:0 20px 6px;scrollbar-width:none;scroll-snap-type:x mandatory}
+.hrail::-webkit-scrollbar{display:none}
+.ecard{
+  flex:0 0 268px;scroll-snap-align:start;border-radius:var(--r-lg);overflow:hidden;
+  background:var(--surface);border:1px solid var(--line);text-align:left;
+  transition:transform .18s var(--ease);
+}
+.ecard:active{transform:scale(.975)}
+.ecard .img{height:146px;position:relative;display:grid;place-items:center;font-size:52px}
+.ecard .img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(10,11,15,.86),transparent 55%)}
+.ecard .img .tags{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:2}
+.ecard .img .when{position:absolute;left:14px;bottom:12px;z-index:2;font-size:12.5px;font-weight:750;color:#fff}
+.ecard .body{padding:13px 15px 15px}
+.ecard h4{margin:0 0 5px;font-size:16.5px;font-weight:780;letter-spacing:-.3px;line-height:1.2}
+.ecard .row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:8px}
+.ecard .fr{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-weight:600}
+.wide{flex:0 0 300px}
+.wide .img{height:170px}
+.placecard{
+  display:flex;gap:13px;align-items:center;padding:12px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid var(--line);width:100%;text-align:left;margin-bottom:10px;
+  transition:transform .16s var(--ease);
+}
+.placecard:active{transform:scale(.98)}
+.placecard .thumb{width:60px;height:60px;border-radius:16px;display:grid;place-items:center;font-size:27px;flex:0 0 auto}
+.placecard h4{margin:0 0 3px;font-size:15px;font-weight:750}
+.placecard .r{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);font-weight:600}
+.star{color:var(--amber);font-weight:750}
+
+/* ============ AI RESULT ============ */
+.airesult{margin:14px 20px 0;border-radius:var(--r-lg);padding:16px;position:relative;
+  background:linear-gradient(155deg,rgba(76,214,245,.11),rgba(10,12,17,.6));border:1px solid rgba(76,214,245,.3);
+  animation:cardIn .4s var(--ease) both}
+.thinking{display:flex;gap:12px;align-items:center;padding:18px 4px}
+.orb{width:32px;height:32px;border-radius:50%;flex:0 0 auto;
+  background:conic-gradient(from 0deg,var(--wave),var(--violet),var(--flare),var(--wave));
+  animation:spin 1.1s linear infinite;position:relative}
+.orb::after{content:'';position:absolute;inset:5px;border-radius:50%;background:#0F1319}
+@keyframes spin{to{transform:rotate(360deg)}}
+.shimmer{height:11px;border-radius:6px;background:linear-gradient(90deg,#1E222B 25%,#2C3240 50%,#1E222B 75%);
+  background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* ============ PLANS ============ */
+.plancard{
+  width:100%;text-align:left;border-radius:var(--r-lg);padding:17px;margin-bottom:14px;
+  background:var(--surface);border:1px solid var(--line);position:relative;overflow:hidden;
+  transition:transform .18s var(--ease);
+}
+.plancard:active{transform:scale(.98)}
+.plancard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--flare),var(--flare2))}
+.plancard.past::before{background:#333944}
+.plancard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.plancard h3{margin:0;font-size:19px;font-weight:800;letter-spacing:-.4px}
+.plancard .date{font-size:12.5px;color:var(--flare2);font-weight:750;margin-top:3px}
+.plancard.past .date{color:var(--muted)}
+.tl{margin:14px 0 0;padding-left:2px}
+.tl li{display:flex;gap:12px;align-items:flex-start;position:relative;padding-bottom:13px}
+.tl li:last-child{padding-bottom:0}
+.tl li::before{content:'';position:absolute;left:5.5px;top:16px;bottom:-3px;width:1.5px;background:var(--line-2)}
+.tl li:last-child::before{display:none}
+.tl .node{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--flare);background:var(--ink);flex:0 0 auto;margin-top:3px;z-index:1}
+.tl .t{font-size:12.5px;color:var(--muted);font-weight:700;width:64px;flex:0 0 auto;margin-top:2px}
+.tl .n{font-size:14.5px;font-weight:650}
+.tl .n small{display:block;font-size:12px;color:var(--dim);font-weight:600;margin-top:1px}
+.plancard .foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.rsvpbar{height:5px;border-radius:3px;background:var(--surface3);overflow:hidden;width:54px}
+.rsvpbar i{display:block;height:100%;background:var(--live);border-radius:3px;transition:width .5s var(--ease)}
+.fab{
+  position:absolute;right:20px;bottom:calc(var(--nav-h) + 18px);z-index:40;
+  height:56px;padding:0 22px;border-radius:var(--pill);display:flex;align-items:center;gap:9px;
+  background:linear-gradient(100deg,var(--flare),var(--flare2));color:#160B05;font-weight:800;font-size:15px;
+  box-shadow:0 16px 34px -12px rgba(255,122,61,.85);transition:transform .16s var(--ease);
+}
+.fab:active{transform:scale(.94)}
+.segment{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--line);border-radius:var(--pill);padding:4px;margin:0 20px 16px}
+.segment button{flex:1;height:36px;border-radius:var(--pill);font-size:13.5px;font-weight:750;color:var(--muted);transition:.22s var(--ease)}
+.segment button.on{background:var(--text);color:#0A0B0F}
+
+/* ============ MESSAGES ============ */
+.thread{
+  display:flex;gap:13px;align-items:center;width:100%;text-align:left;padding:13px 20px;
+  transition:background .18s;
+}
+.thread:active{background:var(--surface)}
+.thread .c{flex:1;min-width:0}
+.thread .n{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.thread h4{margin:0;font-size:15.5px;font-weight:730}
+.thread .time{font-size:11.5px;color:var(--dim);font-weight:600;flex:0 0 auto}
+.thread .prev{font-size:13.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thread.unread .prev{color:var(--text);font-weight:640}
+.unreaddot{width:9px;height:9px;border-radius:50%;background:var(--flare);flex:0 0 auto}
+.bubble{max-width:78%;padding:11px 14px;border-radius:20px;font-size:14.5px;line-height:1.4;position:relative;
+  animation:cardIn .3s var(--ease) both}
+.bubble.them{background:var(--surface2);border-bottom-left-radius:7px;align-self:flex-start}
+.bubble.me{background:linear-gradient(100deg,var(--flare),var(--flare2));color:#180C05;font-weight:600;border-bottom-right-radius:7px;align-self:flex-end}
+.bubble .who{font-size:11.5px;font-weight:750;margin-bottom:3px;opacity:.85}
+.bubble .rx{position:absolute;bottom:-11px;right:8px;background:var(--surface3);border:1.5px solid var(--ink);
+  border-radius:var(--pill);padding:1px 6px;font-size:11px}
+.msgrow{display:flex;flex-direction:column;padding:0 18px;margin-bottom:14px}
+.composer{
+  display:flex;gap:9px;align-items:center;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);background:rgba(10,11,15,.96);backdrop-filter:blur(20px);
+}
+.composer input{
+  flex:1;height:44px;border-radius:var(--pill);background:var(--surface2);border:1px solid var(--line);
+  padding:0 16px;font-size:14.5px;outline:none;
+}
+.composer input::placeholder{color:var(--dim)}
+.send{width:44px;height:44px;border-radius:50%;background:linear-gradient(100deg,var(--flare),var(--flare2));display:grid;place-items:center;flex:0 0 auto}
+.send svg{width:19px;height:19px;stroke:#180C05;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.smartsug{
+  margin:0 18px 14px;border-radius:var(--r-md);padding:13px 14px;display:flex;align-items:center;gap:12px;
+  background:linear-gradient(140deg,rgba(76,214,245,.13),rgba(10,12,17,.5));border:1px solid rgba(76,214,245,.3);
+  animation:cardIn .45s var(--ease) both;
+}
+.smartsug .t{flex:1}
+.smartsug b{display:block;font-size:14px;font-weight:750}
+.smartsug span{font-size:11.5px;color:#9DC0CC}
+
+/* ============ PROFILE ============ */
+.profhead{padding:6px 20px 0;text-align:center}
+.bigav{width:96px;height:96px;border-radius:50%;margin:0 auto 14px;font-size:32px;position:relative;
+  box-shadow:0 18px 40px -16px rgba(255,106,61,.6)}
+.profhead h2{margin:0;font-size:27px;font-weight:800;letter-spacing:-.6px;font-family:'Bricolage Grotesque',sans-serif}
+.profhead .handle{font-size:13.5px;color:var(--muted);margin-top:3px}
+.availrow{display:flex;gap:8px;justify-content:center;margin:16px 0 4px}
+.avail{
+  height:40px;padding:0 15px;border-radius:var(--pill);font-size:13.5px;font-weight:700;
+  background:var(--surface2);border:1px solid var(--line);color:var(--muted);display:inline-flex;align-items:center;gap:7px;
+  transition:.2s var(--ease);
+}
+.avail i{width:9px;height:9px;border-radius:50%;display:block}
+.avail:active{transform:scale(.94)}
+.avail.on{color:var(--text);border-color:var(--line-2);background:var(--surface3)}
+.tilegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px}
+.tile{border-radius:var(--r-md);padding:15px;background:var(--surface);border:1px solid var(--line);text-align:left}
+.tile .big{font-size:26px;font-weight:800;letter-spacing:-1px;font-family:'Bricolage Grotesque',sans-serif}
+.tile .lb{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+.listrow{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 16px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:10px;
+  transition:transform .16s var(--ease);
+}
+.listrow:active{transform:scale(.985)}
+.listrow .c{flex:1;min-width:0}
+.listrow b{font-size:15px;font-weight:700;display:block}
+.listrow span{font-size:12.5px;color:var(--muted)}
+.listrow svg{width:18px;height:18px;stroke:var(--dim);fill:none;stroke-width:2;flex:0 0 auto}
+.chipcloud{display:flex;flex-wrap:wrap;gap:9px;padding:0 20px}
+.ichip{height:38px;padding:0 14px;border-radius:var(--pill);background:var(--surface2);border:1px solid var(--line);
+  font-size:13.5px;font-weight:650;display:inline-flex;align-items:center;gap:7px}
+.ichip.add{border-style:dashed;color:var(--muted)}
+/* ============ SHEETS & OVERLAYS ============ */
+.scrim{position:absolute;inset:0;background:rgba(4,5,8,.6);backdrop-filter:blur(3px);z-index:70;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:80;max-height:86%;
+  background:#15181F;border-radius:34px 34px 0 0;border:1px solid var(--line-2);border-bottom:0;
+  transform:translateY(103%);transition:transform .42s var(--ease);
+  display:flex;flex-direction:column;box-shadow:0 -20px 60px -20px rgba(0,0,0,.9);
+}
+.sheet.on{transform:none}
+.grab{width:38px;height:4.5px;border-radius:3px;background:var(--line-2);margin:11px auto 4px;flex:0 0 auto}
+.sheet .inner{padding:8px 20px calc(26px + env(safe-area-inset-bottom));overflow-y:auto}
+.sheet .inner::-webkit-scrollbar{display:none}
+.sheet h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.5px;font-family:'Bricolage Grotesque',sans-serif}
+
+.page{
+  position:absolute;inset:0;z-index:90;background:var(--ink);display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .38s var(--ease);padding-top:50px;
+}
+.page.on{transform:none}
+.pagebar{display:flex;align-items:center;gap:12px;padding:8px 16px 12px;flex:0 0 auto}
+.pagebar h2{font-size:17.5px;font-weight:780;margin:0;flex:1;letter-spacing:-.3px;text-align:center}
+.pagebar .side{width:40px;flex:0 0 auto;display:flex;justify-content:flex-end}
+.hero{height:180px;position:relative;display:grid;place-items:center;font-size:64px;margin:0 0 -30px}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,var(--ink) 4%,transparent 60%)}
+.mapmini{height:132px;border-radius:var(--r-md);overflow:hidden;position:relative;border:1px solid var(--line)}
+.mapmini .pinme{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;
+  width:16px;height:16px;border-radius:50%;background:var(--flare);border:3px solid #fff;box-shadow:0 0 0 6px rgba(255,106,61,.25)}
+.attendee{display:flex;align-items:center;gap:11px;padding:9px 0}
+.attendee .c{flex:1}
+.attendee b{font-size:14.5px;font-weight:680;display:block}
+.attendee span{font-size:12px;color:var(--muted)}
+.rsvpstate{font-size:11.5px;font-weight:750;padding:4px 10px;border-radius:var(--pill)}
+.rs-yes{background:rgba(155,232,75,.14);color:var(--live)}
+.rs-no{background:rgba(255,106,61,.14);color:var(--flare2)}
+.rs-wait{background:var(--surface3);color:var(--muted)}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;font-size:13.5px;line-height:1.55;color:#D6D8DE}
+.notes li{margin-bottom:7px}
+.actionbar{
+  display:flex;gap:10px;padding:12px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);background:rgba(10,11,15,.96);backdrop-filter:blur(20px);flex:0 0 auto;
+}
+
+/* steps */
+.steps{display:flex;gap:6px;padding:0 20px 18px}
+.steps i{flex:1;height:3.5px;border-radius:2px;background:var(--surface3);transition:background .35s}
+.steps i.on{background:var(--flare)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:7px}
+.input{
+  width:100%;height:52px;border-radius:16px;background:var(--surface);border:1px solid var(--line);
+  padding:0 16px;font-size:15.5px;outline:none;transition:border-color .2s;
+}
+.input:focus{border-color:rgba(255,106,61,.6)}
+textarea.input{height:118px;padding:14px 16px;resize:none;line-height:1.5}
+.split{display:flex;gap:10px}
+.split .field{flex:1}
+.picker{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.picker::-webkit-scrollbar{display:none}
+.dchip{
+  flex:0 0 auto;width:60px;height:70px;border-radius:18px;background:var(--surface);border:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:.2s var(--ease);
+}
+.dchip small{font-size:11px;color:var(--muted);font-weight:650}
+.dchip b{font-size:18px;font-weight:780}
+.dchip.on{background:linear-gradient(140deg,var(--flare),var(--flare2));border-color:transparent;color:#180C05}
+.dchip.on small{color:rgba(24,12,5,.7)}
+.selrow{display:flex;flex-wrap:wrap;gap:9px}
+.selchip{height:44px;padding:0 8px 0 5px;border-radius:var(--pill);background:var(--surface);border:1px solid var(--line);
+  display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:650;transition:.2s var(--ease);padding-right:14px}
+.selchip.on{border-color:var(--flare);background:var(--flare-soft)}
+.money{display:flex;align-items:baseline;gap:4px;font-family:'Bricolage Grotesque',sans-serif}
+.money b{font-size:34px;font-weight:800;letter-spacing:-1.2px}
+.toggle{width:50px;height:30px;border-radius:var(--pill);background:var(--surface3);position:relative;flex:0 0 auto;transition:background .25s}
+.toggle i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .25s var(--ease)}
+.toggle.on{background:var(--live)}
+.toggle.on i{transform:translateX(20px)}
+.radio{
+  display:flex;gap:13px;align-items:flex-start;padding:14px;border-radius:var(--r-md);width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);margin-bottom:10px;transition:.2s var(--ease);
+}
+.radio.on{border-color:var(--flare);background:var(--flare-soft)}
+.radio .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line-2);flex:0 0 auto;margin-top:2px;display:grid;place-items:center}
+.radio.on .dot{border-color:var(--flare)}
+.radio.on .dot::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--flare)}
+.radio b{font-size:14.5px;font-weight:700;display:block}
+.radio span{font-size:12.5px;color:var(--muted);display:block;margin-top:2px;line-height:1.4}
+
+/* notifications */
+.notif{display:flex;gap:12px;padding:14px 16px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);margin-bottom:10px;width:100%;text-align:left;transition:transform .16s var(--ease)}
+.notif:active{transform:scale(.985)}
+.notif.fresh{border-color:rgba(255,106,61,.34);background:linear-gradient(120deg,rgba(255,106,61,.07),var(--surface))}
+.notif .ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;font-size:17px;flex:0 0 auto;background:var(--surface3)}
+.notif b{font-size:14px;font-weight:680;display:block;line-height:1.35}
+.notif span{font-size:11.5px;color:var(--dim);display:block;margin-top:3px}
+
+/* QR */
+.qr{width:172px;height:172px;margin:0 auto;border-radius:24px;background:#fff;padding:14px;display:grid;
+  grid-template-columns:repeat(9,1fr);gap:3px}
+.qr i{background:#0A0B0F;border-radius:2px}
+.qr i.o{background:transparent}
+
+/* toast */
+.toast{
+  position:absolute;left:20px;right:20px;bottom:calc(var(--nav-h) + 22px);z-index:120;
+  background:rgba(28,32,40,.97);border:1px solid var(--line-2);border-radius:18px;
+  padding:14px 16px;display:flex;gap:11px;align-items:center;box-shadow:var(--shadow);
+  transform:translateY(20px);opacity:0;pointer-events:none;transition:.32s var(--ease);backdrop-filter:blur(20px);
+}
+.toast.on{transform:none;opacity:1}
+.toast b{font-size:14px;font-weight:700}
+.toast .ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(155,232,75,.16);font-size:14px}
+
+/* wordmark */
+.wordmark{display:flex;align-items:center;gap:9px}
+.wordmark .mark{width:30px;height:30px;flex:0 0 auto}
+.wordmark .t{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.9px}
+.splash{position:absolute;inset:0;z-index:200;background:var(--ink);display:grid;place-items:center;
+  animation:splashOut .7s var(--ease) 1.15s forwards}
+@keyframes splashOut{to{opacity:0;visibility:hidden}}
+.splash .wordmark{animation:cardIn .6s var(--ease) both}
+.splash .tag{position:absolute;bottom:16%;left:0;right:0;text-align:center;font-size:13.5px;color:var(--muted);
+  animation:cardIn .6s var(--ease) .25s both}
+@media all and (display-mode:standalone){
+  .statusbar{display:none}
+  .phone{border-radius:0;box-shadow:none;width:100vw;height:100dvh;max-height:none}
+  .screen,.page{padding-top:max(env(safe-area-inset-top),44px)}
+  .map-top{top:calc(max(env(safe-area-inset-top),44px) + 6px)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::after,*::before{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.05s !important}
+}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+
+  <div class="statusbar">
+    <span id="clock">9:41</span>
+    <div class="sb-r">
+      <div class="bars"><i></i><i></i><i></i><i></i></div>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 4.2a10 10 0 0 1 14 0M3.6 6.8a6.4 6.4 0 0 1 8.8 0M8 9.8h.01" stroke="#F4F3F0" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <div class="batt"><span></span></div>
+    </div>
+  </div>
+
+  <div class="splash">
+    <div class="wordmark" style="flex-direction:column;gap:16px">
+      <svg class="mark" style="width:64px;height:64px" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="21" stroke="#FF6A3D" stroke-opacity=".26" stroke-width="1.6"/>
+        <circle cx="24" cy="24" r="14" stroke="#FF6A3D" stroke-opacity=".45" stroke-width="1.6"/>
+        <circle cx="24" cy="12.5" r="5" fill="#FF6A3D"/>
+        <circle cx="34" cy="30" r="5" fill="#FFA14A"/>
+        <circle cx="14" cy="30" r="5" fill="#9BE84B"/>
+        <circle cx="24" cy="24" r="3.2" fill="#F4F3F0"/>
+      </svg>
+      <div class="t" style="font-size:38px" data-brand="name">Rally</div>
+    </div>
+    <div class="tag" data-brand="tagline">Get the crew together.</div>
+  </div>
+
+  <div class="viewport">
+
+    <!-- ==================== MAP ==================== -->
+    <section class="screen active" id="map">
+      <div class="maparea">
+        <svg class="mapsvg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="700" fill="#0C1016"/>
+          <g fill="#141A23">
+            <rect x="18" y="70" width="112" height="86" rx="6"/><rect x="146" y="70" width="86" height="86" rx="6"/>
+            <rect x="248" y="46" width="130" height="110" rx="6"/><rect x="18" y="176" width="70" height="104" rx="6"/>
+            <rect x="104" y="176" width="128" height="104" rx="6"/><rect x="248" y="176" width="130" height="66" rx="6"/>
+            <rect x="248" y="262" width="60" height="98" rx="6"/><rect x="324" y="262" width="54" height="98" rx="6"/>
+            <rect x="18" y="300" width="94" height="90" rx="6"/><rect x="128" y="300" width="104" height="90" rx="6"/>
+            <rect x="18" y="410" width="120" height="118" rx="6"/><rect x="256" y="380" width="122" height="70" rx="6"/>
+            <rect x="256" y="470" width="122" height="94" rx="6"/><rect x="18" y="548" width="98" height="94" rx="6"/>
+            <rect x="132" y="548" width="106" height="94" rx="6"/><rect x="256" y="584" width="122" height="80" rx="6"/>
+          </g>
+          <path d="M150 400 q34-26 74-14 40 12 46 52 8 46-34 62-52 20-84-16-26-30-2-84z" fill="#152A1E"/>
+          <path d="M0 640 q90-34 168-6 84 30 232-14 v80 H0z" fill="#0E2130"/>
+          <g stroke="#1B222C" stroke-width="11" stroke-linecap="round">
+            <path d="M-10 62 H410"/><path d="M-10 168 H410"/><path d="M-10 292 H410"/>
+            <path d="M-10 402 H410"/><path d="M-10 540 H410"/>
+            <path d="M96 -10 V710"/><path d="M240 -10 V710"/>
+          </g>
+          <g stroke="#232B37" stroke-width="5" stroke-linecap="round">
+            <path d="M-10 232 H410"/><path d="M-10 470 H410"/><path d="M-10 600 H410"/>
+            <path d="M40 -10 V710"/><path d="M170 -10 V710"/><path d="M320 -10 V710"/>
+          </g>
+          <path d="M-20 720 L420 -20" stroke="#2C3543" stroke-width="15" stroke-linecap="round"/>
+          <path d="M-20 720 L420 -20" stroke="#3E4A5C" stroke-width="1.4" stroke-dasharray="9 12"/>
+          <g fill="#3A4351" font-size="9" font-family="Figtree,sans-serif" font-weight="600">
+            <text x="26" y="200" transform="rotate(-90 26 200)">Greenville Ave</text>
+            <text x="120" y="286">Elm St</text><text x="264" y="396">Commerce St</text>
+            <text x="196" y="466">Trinity Pkwy</text>
+          </g>
+          <text x="196" y="452" fill="#2E4A38" font-size="10" font-weight="700" font-family="Figtree,sans-serif">Vera Park</text>
+        </svg>
+        <div class="mapvig"></div>
+        <div id="markers"></div>
+
+        <div class="map-top">
+          <div class="searchbar" onclick="toast('Search is stubbed in this prototype','🔎')">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            Search people, places, events
+          </div>
+          <button class="iconbtn" style="width:48px;height:48px;background:rgba(19,21,27,.86);backdrop-filter:blur(20px)" onclick="openSheet('sheet-notifs')">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <i class="dot"></i>
+          </button>
+        </div>
+
+        <div class="map-ctrls">
+          <button class="mapbtn" onclick="toast('Zoomed to your crew','👥')">
+            <svg viewBox="0 0 24 24"><path d="M17 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="3.5"/><path d="M22 20v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+          </button>
+          <button class="mapbtn accent" onclick="toast('Centered on your location','📍')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+          </button>
+        </div>
+
+        <div class="friendrail">
+          <button class="sharechip" style="width:calc(100% - 40px)" onclick="openSheet('sheet-share')">
+            <span style="width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(155,232,75,.15)">
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live)"></span>
+            </span>
+            <span class="lbl"><b id="share-title">Sharing live location</b><span id="share-sub">Visible to Close Friends &amp; Family</span></span>
+            <span class="badge">Change</span>
+          </button>
+          <div class="rail" id="friend-rail"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== DISCOVER ==================== -->
+    <section class="screen" id="discover">
+      <div class="hdr">
+        <div>
+          <h1>What's happening</h1>
+          <div class="sub">Near you · Dallas, TX · Tue, Sep 1</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="iconbtn" onclick="openSheet('sheet-notifs')">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="dot"></i>
+          </button>
+        </div>
+      </div>
+      <div class="scroll" id="discover-scroll">
+        <div class="aiband">
+          <h3>What are you feeling?</h3>
+          <p>Tell Rally the vibe. It reads your crew, your budget and what's open.</p>
+          <div class="promptwrap" id="prompts"></div>
+        </div>
+        <div id="ai-slot"></div>
+
+        <div class="pillrow" style="margin-top:20px" id="cats"></div>
+
+        <div class="sectionhead"><h2>Happening tonight</h2><button onclick="toast('Full listings coming soon','🗓')">See all</button></div>
+        <div class="hrail" id="rail-tonight"></div>
+
+        <div class="sectionhead"><h2>This week</h2><button onclick="toast('Full listings coming soon','🗓')">See all</button></div>
+        <div class="hrail" id="rail-week"></div>
+
+        <div class="sectionhead"><h2>Where your friends go</h2></div>
+        <div class="pad" id="places"></div>
+        <div style="height:26px"></div>
+      </div>
+    </section>
+
+    <!-- ==================== PLANS ==================== -->
+    <section class="screen" id="plans">
+      <div class="hdr">
+        <div>
+          <h1>Your plans</h1>
+          <div class="sub" id="plans-sub">2 this week · 1 waiting on you</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="iconbtn" onclick="openSheet('sheet-notifs')">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="dot"></i>
+          </button>
+        </div>
+      </div>
+      <div class="segment">
+        <button class="on" data-seg="upcoming" onclick="setSeg('upcoming')">Upcoming</button>
+        <button data-seg="past" onclick="setSeg('past')">Past</button>
+      </div>
+      <div class="scroll"><div class="pad stag" id="plan-list"></div><div style="height:110px"></div></div>
+      <button class="fab" onclick="openSheet('sheet-create')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#180C05" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        New plan
+      </button>
+    </section>
+
+    <!-- ==================== MESSAGES ==================== -->
+    <section class="screen" id="messages">
+      <div class="hdr">
+        <div><h1>Messages</h1><div class="sub">2 unread · 4 conversations</div></div>
+        <div class="hdr-actions">
+          <button class="iconbtn" onclick="toast('New message composer is stubbed','✏️')">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="pillrow" id="msg-filters">
+        <button class="pill on">All</button><button class="pill">Direct</button><button class="pill">Groups</button><button class="pill">Plans</button>
+      </div>
+      <div class="scroll" style="margin-top:10px"><div class="stag" id="thread-list"></div><div style="height:20px"></div></div>
+    </section>
+
+    <!-- ==================== PROFILE ==================== -->
+    <section class="screen" id="profile">
+      <div class="hdr">
+        <div class="wordmark"><svg class="mark" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="21" stroke="#FF6A3D" stroke-opacity=".3" stroke-width="2"/>
+          <circle cx="24" cy="12.5" r="5" fill="#FF6A3D"/><circle cx="34" cy="30" r="5" fill="#FFA14A"/>
+          <circle cx="14" cy="30" r="5" fill="#9BE84B"/><circle cx="24" cy="24" r="3.2" fill="#F4F3F0"/></svg>
+          <span class="t" data-brand="name">Rally</span></div>
+        <div class="hdr-actions">
+          <button class="iconbtn" onclick="openSheet('sheet-settings')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H7a1.6 1.6 0 0 0 1-1.5V1a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="profhead">
+          <div class="avatar bigav" style="background:linear-gradient(140deg,#FF6A3D,#FFA14A)">X<i class="presence p-live" style="width:22px;height:22px;border-width:4px;border-color:#0A0B0F;right:4px;bottom:4px"></i></div>
+          <h2>Xavier Rivera</h2>
+          <div class="handle">@xav · Dallas, TX</div>
+          <div class="availrow" id="availrow">
+            <button class="avail on" data-av="free" onclick="setAvail('free')"><i style="background:var(--live)"></i>Available</button>
+            <button class="avail" data-av="maybe" onclick="setAvail('maybe')"><i style="background:var(--amber)"></i>Maybe later</button>
+            <button class="avail" data-av="busy" onclick="setAvail('busy')"><i style="background:#FF5A5A"></i>Busy</button>
+          </div>
+          <div class="meta" id="avail-note" style="margin-bottom:20px">Your crew can see you're down to hang out today.</div>
+        </div>
+
+        <div class="tilegrid">
+          <div class="tile"><div class="big" id="tile-plans">3</div><div class="lb">Plans this month</div></div>
+          <div class="tile"><div class="big">14</div><div class="lb">Friends nearby</div></div>
+        </div>
+
+        <div class="sectionhead"><h2>Friends online</h2><button onclick="openPage('page-friends')">Manage</button></div>
+        <div class="rail" id="online-rail"></div>
+
+        <div class="sectionhead"><h2>Coming up</h2><button onclick="go('plans')">All plans</button></div>
+        <div class="pad" id="prof-plans"></div>
+
+        <div class="sectionhead"><h2>Interests</h2><button onclick="toast('Interests shape your AI picks','✨')">Edit</button></div>
+        <div class="chipcloud">
+          <span class="ichip">🎮 Gaming</span><span class="ichip">🎬 Movies</span><span class="ichip">🍕 Food</span>
+          <span class="ichip">🎵 Music</span><span class="ichip">🏀 Sports</span><span class="ichip add">+ Add</span>
+        </div>
+
+        <div class="sectionhead"><h2>Privacy</h2></div>
+        <div class="pad">
+          <button class="listrow" onclick="openSheet('sheet-share')">
+            <span class="notif-ic ic" style="width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:rgba(155,232,75,.13);font-size:16px">📍</span>
+            <span class="c"><b>Location sharing</b><span id="priv-sub">Live · Close Friends &amp; Family</span></span>
+            <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button class="listrow" onclick="openPage('page-friends')">
+            <span class="ic" style="width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:rgba(76,214,245,.13);font-size:16px">👥</span>
+            <span class="c"><b>Friends &amp; groups</b><span>14 friends · 3 groups</span></span>
+            <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div style="height:30px"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ==================== NAV ==================== -->
+  <nav class="nav" id="nav">
+    <button class="on" data-tab="map" onclick="go('map')">
+      <svg viewBox="0 0 24 24"><path d="M9 3.5 3 6v14.5l6-2.5 6 2.5 6-2.5V3.5l-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg><span>Map</span></button>
+    <button data-tab="discover" onclick="go('discover')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2z"/></svg><span>Discover</span></button>
+    <button data-tab="plans" onclick="go('plans')">
+      <svg viewBox="0 0 24 24"><rect x="3.2" y="4.8" width="17.6" height="16" rx="3.4"/><path d="M8 2.8v4M16 2.8v4M3.4 10h17.2"/><path d="M9 14.6l2 2 4-4"/></svg><span>Plans</span></button>
+    <button data-tab="messages" onclick="go('messages')">
+      <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.9 7.9 0 0 1-8.5 8 9.3 9.3 0 0 1-3.6-.7L3.5 20.5l1.7-4.6a8 8 0 0 1-.7-3.6 7.9 7.9 0 0 1 8-8.4 8 8 0 0 1 8 7.6z"/></svg><span>Messages</span>
+      <i class="navdot"></i></button>
+    <button data-tab="profile" onclick="go('profile')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="4"/><path d="M4.5 20.2a7.5 7.5 0 0 1 15 0"/></svg><span>You</span></button>
+  </nav>
+
+  <div class="scrim" id="scrim" onclick="closeAll()"></div>
+  <div class="toast" id="toast"><span class="ic" id="toast-ic">✓</span><b id="toast-msg">Done</b></div>
+  <!-- ==================== SHEETS ==================== -->
+  <div class="sheet" id="sheet-friend"><div class="grab"></div><div class="inner" id="friend-body"></div></div>
+
+  <div class="sheet" id="sheet-share"><div class="grab"></div><div class="inner">
+    <h3>Location sharing</h3>
+    <p class="meta" style="margin:7px 0 18px;line-height:1.5">You choose who sees you and how precisely. Change it anytime — nobody gets a notification when you do.</p>
+    <div id="share-opts"></div>
+    <div class="listrow" style="margin-top:6px">
+      <span class="c"><b>Hide from Jordan today</b><span>Temporary, resets at midnight</span></span>
+      <span class="toggle" onclick="this.classList.toggle('on');toast(this.classList.contains('on')?'Hidden from Jordan until midnight':'Visible to Jordan again','🙈')"><i></i></span>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:14px" onclick="closeAll()">Done</button>
+  </div></div>
+
+  <div class="sheet" id="sheet-notifs"><div class="grab"></div><div class="inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3>Notifications</h3><button class="badge" onclick="clearNotifs()">Mark all read</button>
+    </div>
+    <div id="notif-list"></div>
+  </div></div>
+
+  <div class="sheet" id="sheet-create"><div class="grab"></div><div class="inner">
+    <h3>Start a plan</h3>
+    <p class="meta" style="margin:7px 0 18px">Describe it and let Rally build the night, or set it up yourself.</p>
+    <button class="radio on" style="align-items:center" onclick="closeAll();setTimeout(()=>openSheet('sheet-ai'),260)">
+      <span style="width:44px;height:44px;border-radius:15px;display:grid;place-items:center;font-size:20px;background:linear-gradient(140deg,rgba(76,214,245,.22),rgba(139,123,255,.18));flex:0 0 auto">✦</span>
+      <span><b>Plan with AI</b><span>Type the vibe, get a full itinerary with times and costs</span></span>
+    </button>
+    <button class="radio" style="align-items:center" onclick="closeAll();setTimeout(()=>{resetNew();openPage('page-new')},260)">
+      <span style="width:44px;height:44px;border-radius:15px;display:grid;place-items:center;font-size:20px;background:var(--surface3);flex:0 0 auto">📝</span>
+      <span><b>Build it myself</b><span>Name, time, place, invites, itinerary, budget</span></span>
+    </button>
+  </div></div>
+
+  <div class="sheet" id="sheet-ai"><div class="grab"></div><div class="inner">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+      <span class="badge ai">✦ Plan with AI</span>
+    </div>
+    <div id="ai-plan-body">
+      <h3 style="margin-bottom:12px">What's the plan?</h3>
+      <textarea class="input" id="ai-input" placeholder="I want to hang out with five friends Saturday. We want Mexican food and something fun afterward. Keep it under $50 per person."></textarea>
+      <div class="pillrow" style="padding:12px 0 0;margin:0 -20px 0 0">
+        <button class="pill" onclick="fillAI('Five of us Saturday — Mexican food then something fun. Under $50 each.')">Saturday, 5 people, under $50</button>
+        <button class="pill" onclick="fillAI('Low key family dinner Sunday, somewhere my mom would love.')">Family dinner Sunday</button>
+        <button class="pill" onclick="fillAI('Something active tonight that is basically free.')">Free + active tonight</button>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top:18px" onclick="runAIPlan()">Build my plan</button>
+    </div>
+  </div></div>
+
+  <div class="sheet" id="sheet-settings"><div class="grab"></div><div class="inner">
+    <h3>Settings</h3>
+    <div style="height:14px"></div>
+    <div class="listrow"><span class="c"><b>Ghost mode</b><span>Stay on the map but hide your exact spot</span></span>
+      <span class="toggle" onclick="this.classList.toggle('on');toast('Ghost mode '+(this.classList.contains('on')?'on':'off'),'👻')"><i></i></span></div>
+    <div class="listrow"><span class="c"><b>Let AI read my plans</b><span>Used for suggestions. Never shared with friends.</span></span>
+      <span class="toggle on" onclick="this.classList.toggle('on')"><i></i></span></div>
+    <div class="listrow"><span class="c"><b>Nearby friend alerts</b><span>Ping me when a friend is within a mile</span></span>
+      <span class="toggle on" onclick="this.classList.toggle('on')"><i></i></span></div>
+    <button class="btn btn-ghost btn-block" style="margin-top:8px" onclick="closeAll()">Close</button>
+  </div></div>
+
+  <!-- ==================== PAGES ==================== -->
+  <div class="page" id="page-plan">
+    <div class="pagebar">
+      <button class="iconbtn" onclick="closePage('page-plan')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 id="pp-title">Plan</h2>
+      <div class="side"><button class="iconbtn" onclick="toast('Share sheet is stubbed','📤')"><svg viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg></button></div>
+    </div>
+    <div class="scroll" id="pp-body"></div>
+    <div class="actionbar">
+      <button class="btn btn-ghost" style="flex:0 0 auto;padding:0 16px" onclick="toast('Added to your calendar','🗓')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      </button>
+      <button class="btn btn-ghost" style="flex:1" onclick="openChatFromPlan()">Message group</button>
+      <button class="btn btn-primary" style="flex:1" id="pp-rsvp" onclick="rsvpYes()">I'm in</button>
+    </div>
+  </div>
+
+  <div class="page" id="page-chat">
+    <div class="pagebar">
+      <button class="iconbtn" onclick="closePage('page-chat')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div style="flex:1;display:flex;align-items:center;gap:10px;justify-content:center">
+        <div id="chat-av"></div>
+        <div style="text-align:left"><div style="font-size:15.5px;font-weight:750" id="chat-name">Chat</div>
+        <div style="font-size:11.5px;color:var(--muted)" id="chat-sub">Active now</div></div>
+      </div>
+      <div class="side"><button class="iconbtn" onclick="toast('Group info is stubbed','ℹ️')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button></div>
+    </div>
+    <div class="scroll" id="chat-body" style="padding-top:8px"></div>
+    <div id="chat-sug"></div>
+    <div class="composer">
+      <button class="iconbtn" style="background:var(--surface2)" onclick="toast('Photo picker is stubbed','🖼')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4 4 3 3-2 4 4"/></svg></button>
+      <input id="chat-input" placeholder="Message" onkeydown="if(event.key==='Enter')sendMsg()"/>
+      <button class="send" onclick="sendMsg()"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6z"/></svg></button>
+    </div>
+  </div>
+
+  <div class="page" id="page-new">
+    <div class="pagebar">
+      <button class="iconbtn" onclick="backNew()"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2 id="new-title">New plan</h2>
+      <div class="side"><button class="badge" onclick="closePage('page-new')">Cancel</button></div>
+    </div>
+    <div class="steps"><i class="on"></i><i></i><i></i></div>
+    <div class="scroll pad" id="new-body"></div>
+    <div class="actionbar">
+      <button class="btn btn-primary btn-block" id="new-next" onclick="nextNew()">Continue</button>
+    </div>
+  </div>
+
+  <div class="page" id="page-friends">
+    <div class="pagebar">
+      <button class="iconbtn" onclick="closePage('page-friends')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2>Friends &amp; groups</h2>
+      <div class="side"><button class="iconbtn" onclick="openPage('page-add')"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    </div>
+    <div class="scroll pad" id="friends-body"></div>
+  </div>
+
+  <div class="page" id="page-add">
+    <div class="pagebar">
+      <button class="iconbtn" onclick="closePage('page-add')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2>Add friends</h2><div class="side"></div>
+    </div>
+    <div class="scroll pad">
+      <div class="field"><label>Username</label>
+        <div style="display:flex;gap:9px"><input class="input" id="add-user" placeholder="@username"/>
+        <button class="btn btn-primary" style="width:96px" onclick="addByUser()">Send</button></div></div>
+      <div class="card" style="padding:22px 20px;text-align:center;margin:6px 0 16px">
+        <div class="qr" id="qr"></div>
+        <div style="font-size:15px;font-weight:750;margin-top:14px">@xav</div>
+        <div class="meta">Have them scan this to add you instantly</div>
+      </div>
+      <button class="listrow" onclick="toast('Contacts access is stubbed','📇')">
+        <span class="ic" style="width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:var(--surface3);font-size:16px">📇</span>
+        <span class="c"><b>Find from contacts</b><span>9 people you know are on Rally</span></span>
+        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+      <button class="listrow" onclick="toast('Invite link copied','🔗')">
+        <span class="ic" style="width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:var(--surface3);font-size:16px">🔗</span>
+        <span class="c"><b>Copy invite link</b><span data-brand="link">rally.app/x/xav</span></span>
+        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+      <div class="sectionhead" style="padding-left:0"><h2>Requests</h2></div>
+      <div id="requests"></div>
+      <div style="height:24px"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-event">
+    <div class="pagebar" style="position:absolute;top:50px;left:0;right:0;z-index:5">
+      <button class="iconbtn" style="background:rgba(19,21,27,.8);backdrop-filter:blur(14px)" onclick="closePage('page-event')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2></h2><div class="side"></div>
+    </div>
+    <div class="scroll" id="ev-body" style="margin-top:-50px;padding-top:0"></div>
+    <div class="actionbar">
+      <button class="btn btn-ghost" style="flex:0 0 auto;padding:0 16px" onclick="toast('Saved to your list','🔖')">Save</button>
+      <button class="btn btn-primary" style="flex:1" onclick="planThisEvent()">Plan it</button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+<script>
+/* ===== BRAND — placeholder name lives HERE and nowhere else. =====
+   Change these 4 strings + the apple-mobile-web-app-title meta tag
+   in <head> and the entire app is renamed. Nothing else references it. */
+const BRAND={name:'Rally',tagline:'Get the crew together.',handle:'@xav',link:'rally.app/x/xav'};
+function applyBrand(){
+  document.title=BRAND.name;
+  document.querySelectorAll('[data-brand]').forEach(el=>el.textContent=BRAND[el.dataset.brand]);
+}
+
+/* ============================== DATA ============================== */
+const F = {
+  sarah:{id:'sarah',name:'Sarah Okafor',first:'Sarah',init:'SO',c:['#FF6A3D','#FFA14A'],status:'live',place:'At Starbucks on Greenville',ago:'Active 4 min ago',x:31,y:33,dist:'0.4 mi away'},
+  mike:{id:'mike',name:'Mike Delgado',first:'Mike',init:'MD',c:['#4CD6F5','#3F86FF'],status:'live',place:'Deep Ellum',ago:'Active now',x:67,y:23,dist:'1.2 mi away'},
+  jordan:{id:'jordan',name:'Jordan Reyes',first:'Jordan',init:'JR',c:['#9BE84B','#59C7A4'],status:'recent',place:'Bishop Arts District',ago:'Active 22 min ago',x:18,y:59,dist:'2.6 mi away'},
+  tasha:{id:'tasha',name:'Tasha Bell',first:'Tasha',init:'TB',c:['#8B7BFF','#C56BFF'],status:'live',place:'Cosmic Bowl',ago:'Active 1 min ago',x:75,y:55,dist:'3.1 mi away'},
+  leo:{id:'leo',name:'Leo Nguyen',first:'Leo',init:'LN',c:['#FFC24B','#FF6A3D'],status:'recent',place:'Home',ago:'Active 40 min ago',x:53,y:71,dist:'4.4 mi away'},
+  mom:{id:'mom',name:'Mom',first:'Mom',init:'MR',c:['#FF8FA3','#FF6A3D'],status:'live',place:'Home',ago:'Active 6 min ago',dist:'8.2 mi away'},
+  dad:{id:'dad',name:'Dad',first:'Dad',init:'RR',c:['#6BA8FF','#4CD6F5'],status:'off',place:'Home',ago:'Active 3 h ago',dist:'8.2 mi away'},
+  nina:{id:'nina',name:'Nina Rivera',first:'Nina',init:'NR',c:['#C56BFF','#8B7BFF'],status:'live',place:'UTD campus',ago:'Active now',dist:'12 mi away'},
+  you:{id:'you',name:'Xavier Rivera',first:'You',init:'X',c:['#FF6A3D','#FFA14A'],status:'live'}
+};
+const EVENTS = [
+  {id:'e1',t:'Deep Ellum Block Party',emoji:'🎵',cat:'Music',g:['#3B1D5E','#8B7BFF'],when:'Today · 7:00 PM',dist:'2.8 mi',price:'~$25',friends:['sarah','mike','tasha'],
+   d:'Six blocks of Elm shut down for live sets, taco carts and a vinyl market. Headliner goes on at 9.',tag:'tonight'},
+  {id:'e2',t:'Trinity Levee Skate Session',emoji:'🛼',cat:'Outdoors',g:['#123829','#9BE84B'],when:'Today · 6:30 PM',dist:'1.1 mi',price:'Free',friends:['jordan'],
+   d:'Open skate on the levee path. Bring your own wheels, somebody always has a speaker.',tag:'tonight'},
+  {id:'e3',t:'Cosmic Bowl Late Night',emoji:'🎳',cat:'Games',g:['#3A1B2E','#FF6A3D'],when:'Today · 9:00 PM',dist:'3.1 mi',price:'~$18',friends:['tasha','leo'],
+   d:'Unlimited bowling after 9, glow lanes, $3 sliders at the counter.',tag:'tonight'},
+  {id:'e4',t:'Rooftop Movie: Spirited Away',emoji:'🎬',cat:'Movies',g:['#1C2E4A','#4CD6F5'],when:'Sat · 8:15 PM',dist:'4.2 mi',price:'$12',friends:['sarah','leo'],
+   d:'Sunset screening on the Continental rooftop. Blankets provided, food trucks downstairs.',tag:'week'},
+  {id:'e5',t:'Mavs Watch Party at Braindead',emoji:'🏀',cat:'Sports',g:['#3B2410','#FFA14A'],when:'Thu · 7:30 PM',dist:'2.2 mi',price:'~$15',friends:['mike'],
+   d:'Big screens, wing specials, and the loudest room in Deep Ellum when it goes to overtime.',tag:'week'},
+  {id:'e6',t:'Klyde Warren Food Trucks',emoji:'🚚',cat:'Food',g:['#2A2010','#FFC24B'],when:'Fri · 11:00 AM',dist:'3.6 mi',price:'~$14',friends:['jordan','nina'],
+   d:'Twenty trucks on the lawn every Friday. Get the birria from Mero Mero before the line hits.',tag:'week'},
+  {id:'e7',t:'Sunday Family Cookout Series',emoji:'🍖',cat:'Food',g:['#2B1A14','#FF8F6B'],when:'Sun · 2:00 PM',dist:'5.0 mi',price:'~$20',friends:['mom','nina'],
+   d:'Community cookout at White Rock. Kid-friendly, shaded tables, live blues from 4.',tag:'week'}
+];
+const PLACES = [
+  {t:'Taqueria Luz',emoji:'🌮',cat:'Mexican · $$',dist:'0.9 mi',rate:'4.8',note:'Sarah went twice this month'},
+  {t:'Cosmic Bowl',emoji:'🎳',cat:'Bowling · $$',dist:'3.1 mi',rate:'4.6',note:'Tasha is here right now'},
+  {t:'Ember & Ash',emoji:'🔥',cat:'BBQ · $$$',dist:'2.4 mi',rate:'4.9',note:'Saved by 3 friends'},
+  {t:'Halcyon Coffee',emoji:'☕️',cat:'Coffee · $',dist:'0.5 mi',rate:'4.7',note:'Your usual Saturday spot'}
+];
+let PLANS = [
+  {id:'p1',t:'Friday Night',emoji:'🍕',date:'Friday, Sep 4',time:'7:00 PM',g:['#3A1B2E','#FF6A3D'],state:'upcoming',
+   loc:'Zoli\'s NY Pizza · Deep Ellum',chat:'c-weekend',people:['you','sarah','mike','jordan'],yes:['you','sarah','mike'],
+   budget:'$38/person',
+   items:[{time:'7:00 PM',n:'Dinner',s:'Zoli\'s NY Pizza',e:'🍕'},{time:'8:30 PM',n:'Movie',s:'Alamo Drafthouse',e:'🎬'},{time:'10:45 PM',n:'Dessert',s:'Sweet Firefly',e:'🍦'}],
+   notes:['Mike is driving — 4 seats, meet at his place 6:40','Tickets already bought for the 8:30 showing','Jordan still hasn\'t answered, poke him']},
+  {id:'p2',t:'Rooftop Movie',emoji:'🎬',date:'Saturday, Sep 5',time:'8:15 PM',g:['#1C2E4A','#4CD6F5'],state:'upcoming',
+   loc:'The Continental Rooftop',chat:'c-weekend',people:['you','sarah','leo','tasha','nina'],yes:['you','sarah','leo','tasha','nina'],
+   budget:'$12/person',
+   items:[{time:'7:15 PM',n:'Meet up',s:'Lobby bar',e:'🍹'},{time:'8:15 PM',n:'Spirited Away',s:'Rooftop screen',e:'🎬'},{time:'10:30 PM',n:'Late tacos',s:'Revolver Taco',e:'🌮'}],
+   notes:['Bring a hoodie, it gets cold up there','Parking garage on Elm is $8 flat']},
+  {id:'p3',t:'Sunday Hoops',emoji:'🏀',date:'Sunday, Sep 6',time:'10:00 AM',g:['#2A2010','#FFC24B'],state:'upcoming',
+   loc:'Exall Park Courts',chat:'c-mike',people:['you','mike','leo'],yes:['you','mike'],budget:'Free',
+   items:[{time:'10:00 AM',n:'Run games',s:'Exall Park',e:'🏀'},{time:'12:00 PM',n:'Breakfast tacos',s:'Tacodeli',e:'🌯'}],
+   notes:['First to 11, winners stay on']},
+  {id:'p4',t:'Jordan\'s Birthday',emoji:'🎂',date:'Saturday, Aug 22',time:'8:00 PM',g:['#2B1A3A','#8B7BFF'],state:'past',
+   loc:'Ruins · Deep Ellum',chat:'c-weekend',people:['you','sarah','mike','jordan','tasha'],yes:['you','sarah','mike','jordan','tasha'],budget:'$45/person',
+   items:[{time:'8:00 PM',n:'Dinner',s:'Monkey King Noodle',e:'🍜'},{time:'10:00 PM',n:'Ruins',s:'Deep Ellum',e:'🎶'}],notes:['Photos are in the group chat']},
+  {id:'p5',t:'Lake Day',emoji:'⛵️',date:'Sunday, Aug 9',time:'11:00 AM',g:['#123043','#4CD6F5'],state:'past',
+   loc:'White Rock Lake',chat:'c-family',people:['you','mom','dad','nina'],yes:['you','mom','dad','nina'],budget:'$20/person',
+   items:[{time:'11:00 AM',n:'Kayaks',s:'White Rock Paddle',e:'🛶'},{time:'1:30 PM',n:'Picnic',s:'Sunset Bay',e:'🧺'}],notes:[]}
+];
+let CHATS = [
+  {id:'c-weekend',name:'Weekend Crew',type:'group',members:['sarah','mike','jordan','tasha'],unread:2,time:'2m',
+   msgs:[{f:'mike',t:'that pizza place was packed last friday, we should go earlier'},{f:'sarah',t:'im down for 7'},
+         {f:'you',t:'7 works. tickets are 8:30 so we cant be late'},{f:'jordan',t:'Anyone wanna go bowling Friday?'}],
+   sug:{e:'🎳',b:'Turn this into a plan',s:'Cosmic Bowl · Friday · 3 friends free'}},
+  {id:'c-sarah',name:'Sarah Okafor',type:'dm',members:['sarah'],unread:1,time:'12m',
+   msgs:[{f:'sarah',t:'im at starbucks on greenville if youre close ☕️'},{f:'you',t:'omw in like 20'},{f:'sarah',t:'bet, ill grab a table'}]},
+  {id:'c-family',name:'Family',type:'group',members:['mom','dad','nina'],unread:0,time:'1h',
+   msgs:[{f:'mom',t:'Sunday dinner still on? I\'m making pernil'},{f:'nina',t:'yes 🙌'},{f:'you',t:'wouldnt miss it'}]},
+  {id:'c-mike',name:'Mike Delgado',type:'dm',members:['mike'],unread:0,time:'3h',
+   msgs:[{f:'you',t:'hoops sunday?'},{f:'mike',t:'bet. what time'},{f:'you',t:'10, before it gets hot'},{f:'mike',t:'👍'}]}
+];
+let NOTIFS = [
+  {e:'🍕',b:'Sarah invited you to Friday Night',s:'2 minutes ago',fresh:1,go:()=>openPlan('p1')},
+  {e:'👀',b:'Mike is 0.4 miles away',s:'8 minutes ago',fresh:1,go:()=>go('map')},
+  {e:'✨',b:'3 friends are free tonight — Rally found something',s:'25 minutes ago',fresh:1,go:()=>{go('discover');setTimeout(()=>runAI('Something fun tonight'),400)}},
+  {e:'⏰',b:'Rooftop Movie starts in 1 hour',s:'Yesterday',go:()=>openPlan('p2')},
+  {e:'✅',b:'Jordan accepted Sunday Hoops',s:'Yesterday',go:()=>openPlan('p3')},
+  {e:'📍',b:'New event near you: Trinity Levee Skate',s:'2 days ago',go:()=>openEvent('e2')}
+];
+const SHARE = [
+  {id:'live',b:'Sharing live location',s:'Close friends see you move in real time.'},
+  {id:'approx',b:'Sharing approximate area',s:'Friends see your neighborhood, not your address.'},
+  {id:'using',b:'Only while I\'m using Rally',s:'You disappear from the map when you close the app.'},
+  {id:'hidden',b:'Location hidden',s:'Nobody sees where you are. You can still make plans.'}
+];
+let shareMode='live', avail='free', seg='upcoming', curPlan=null, curChat=null;
+
+/* ============================== HELPERS ============================== */
+const $=(s)=>document.querySelector(s), $$=(s)=>[...document.querySelectorAll(s)];
+function av(f,size=38,pres=false){
+  const p=pres?`<i class="presence p-${f.status==='live'?'live':f.status==='recent'?'recent':'off'}"></i>`:'';
+  return `<span class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.36)}px;background:linear-gradient(140deg,${f.c[0]},${f.c[1]})">${f.init}${p}</span>`;
+}
+function stack(ids,size=28){return `<span class="stack">${ids.slice(0,4).map(i=>av(F[i],size)).join('')}</span>`;}
+function toast(msg,ic='✓'){const t=$('#toast');$('#toast-msg').textContent=msg;$('#toast-ic').textContent=ic;
+  t.classList.add('on');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),2400);}
+
+/* ============================== NAV / OVERLAYS ============================== */
+function go(tab){
+  $$('.screen').forEach(s=>s.classList.remove('active','enter'));
+  const s=document.getElementById(tab);s.classList.add('active','enter');
+  $$('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const sc=s.querySelector('.scroll'); if(sc) sc.scrollTop=0;
+  closeAll();
+}
+function openSheet(id){$('#scrim').classList.add('on');document.getElementById(id).classList.add('on');}
+function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));}
+function openPage(id){document.getElementById(id).classList.add('on');}
+function closePage(id){document.getElementById(id).classList.remove('on');}
+
+/* ============================== MAP ============================== */
+function renderMap(){
+  const m=$('#markers');
+  const mk=(f)=>`<div class="marker" style="left:${f.x}%;top:${f.y}%">
+      <button onclick="openFriend('${f.id}')">
+        <span class="mk-av ${f.status}" style="background:linear-gradient(140deg,${f.c[0]},${f.c[1]})">${f.init}
+          ${f.status==='live'?'<span class="halo"></span>':''}</span>
+        <span class="mk-name">${f.first}</span>
+      </button></div>`;
+  const places=[
+    {x:44,y:20,e:'☕️',n:'Halcyon'},{x:80,y:38,e:'🌮',n:'Taqueria Luz'},{x:12,y:44,e:'🎳',n:'Cosmic Bowl'}
+  ].map(p=>`<div class="marker" style="left:${p.x}%;top:${p.y}%"><button class="mk-place" onclick="toast('${p.n} · saved by 3 friends','${p.e}')"><span class="em">${p.e}</span>${p.n}</button></div>`).join('');
+  const ev=`<div class="marker" style="left:58%;top:44%"><button class="mk-place event" onclick="openEvent('e1')"><span class="em">🎵</span>Block Party · 7PM</button></div>`;
+  const cluster=`<div class="marker mk-cluster" style="left:38%;top:80%">
+      <button onclick="openSheet('sheet-notifs')">
+        <span class="mk-av">3</span><span class="mk-name">Family</span></button></div>`;
+  m.innerHTML=['sarah','mike','jordan','tasha','leo'].map(i=>mk(F[i])).join('')+places+ev+cluster+
+    `<div class="me-dot" style="left:46%;top:57%"><span class="beam"></span><i></i></div>`;
+  $('#friend-rail').innerHTML=['sarah','mike','tasha','jordan','leo'].map(id=>{const f=F[id];
+    return `<button class="railcard" onclick="openFriend('${id}')">${av(f,36,true)}
+      <span><b>${f.first}</b><span>${f.dist}</span></span></button>`}).join('');
+}
+function openFriend(id){
+  const f=F[id];
+  $('#friend-body').innerHTML=`
+    <div style="display:flex;gap:14px;align-items:center">
+      ${av(f,64,true)}
+      <div style="flex:1">
+        <h3>${f.name}</h3>
+        <div class="meta" style="margin-top:3px">${f.place}</div>
+        <div style="display:flex;gap:7px;margin-top:9px">
+          <span class="badge ${f.status==='live'?'live':''}">${f.status==='live'?'Live now':f.ago}</span>
+          <span class="badge">${f.dist}</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin:18px 0;padding:14px;background:linear-gradient(140deg,rgba(76,214,245,.1),rgba(10,12,17,.4));border-color:rgba(76,214,245,.26)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="font-size:15px">✦</span>
+        <div><b style="font-size:14px;font-weight:730">You're both free and 5 minutes apart</b>
+        <div class="meta" style="margin-top:3px;line-height:1.45">Halcyon Coffee is between you two and open until 10.</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeAll();setTimeout(()=>openChat('${dmFor(id)}'),240)">Message</button>
+      <button class="btn btn-primary" style="flex:1" onclick="closeAll();setTimeout(()=>{resetNew('${id}');openPage('page-new')},240)">Create plan</button>
+      <button class="btn btn-ghost" style="flex:0 0 auto;padding:0 15px" onclick="toast('Directions handed to Maps','🧭')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-8-8 19-2.5-8.5z"/></svg></button>
+    </div>
+    <div class="listrow" style="margin-top:14px">
+      <span class="c"><b>Share my location with ${f.first}</b><span>Live · until you turn it off</span></span>
+      <span class="toggle on" onclick="this.classList.toggle('on');toast(this.classList.contains('on')?'Sharing with ${f.first}':'Stopped sharing with ${f.first}','📍')"><i></i></span>
+    </div>`;
+  openSheet('sheet-friend');
+}
+function dmFor(id){const c=CHATS.find(c=>c.type==='dm'&&c.members[0]===id);return c?c.id:'c-weekend';}
+function renderShare(){
+  $('#share-opts').innerHTML=SHARE.map(o=>`<button class="radio ${o.id===shareMode?'on':''}" onclick="setShare('${o.id}')">
+    <span class="dot"></span><span><b>${o.b}</b><span>${o.s}</span></span></button>`).join('');
+}
+function setShare(id){shareMode=id;renderShare();
+  const o=SHARE.find(s=>s.id===id);
+  $('#share-title').textContent=o.b;
+  $('#share-sub').textContent=id==='hidden'?'Nobody can see you right now':'Visible to Close Friends & Family';
+  $('#priv-sub').textContent=({live:'Live · Close Friends & Family',approx:'Approximate area · Close Friends',using:'Only while using Rally',hidden:'Hidden'})[id];
+  toast(o.b,'📍');
+}
+/* ============================== DISCOVER ============================== */
+const PROMPTS=['I\'m bored','Something fun tonight','Find something cheap','Food + activity','Whole family','Surprise me'];
+const CATS=['🔥 Happening soon','🍔 Food','🎵 Music','🎬 Movies','🎮 Games','🏀 Sports','🌳 Outdoors','🎨 Things to do'];
+function evCard(e,wide){
+  const fr=e.friends.length?`<span class="fr">${stack(e.friends,22)} ${e.friends.length} ${e.friends.length>1?'friends':'friend'} going</span>`:'<span class="fr">New near you</span>';
+  return `<button class="ecard ${wide?'wide':''}" onclick="openEvent('${e.id}')">
+    <span class="img" style="background:linear-gradient(150deg,${e.g[0]},${e.g[1]})">${e.emoji}
+      <span class="tags"><span class="badge" style="background:rgba(10,11,15,.6);backdrop-filter:blur(8px)">${e.cat}</span>
+      <span class="badge" style="background:rgba(10,11,15,.6);backdrop-filter:blur(8px)">${e.price}</span></span>
+      <span class="when">${e.when} · ${e.dist}</span></span>
+    <span class="body"><h4>${e.t}</h4>
+      <span class="row">${fr}<span class="badge flare">Plan it</span></span></span></button>`;
+}
+function renderDiscover(){
+  $('#prompts').innerHTML=PROMPTS.map((p,i)=>`<button class="prompt" onclick="runAIIdx(${i})">${p}</button>`).join('');
+  $('#cats').innerHTML=CATS.map((c,i)=>`<button class="pill ${i===0?'on':''}" onclick="pickCat(this)">${c}</button>`).join('');
+  $('#rail-tonight').innerHTML=EVENTS.filter(e=>e.tag==='tonight').map(e=>evCard(e,1)).join('');
+  $('#rail-week').innerHTML=EVENTS.filter(e=>e.tag==='week').map(e=>evCard(e)).join('');
+  $('#places').innerHTML=PLACES.map(p=>`<button class="placecard" onclick="toast('${p.t} — added to your saved list','${p.emoji}')">
+    <span class="thumb" style="background:var(--surface2)">${p.emoji}</span>
+    <span style="flex:1"><h4>${p.t}</h4><span class="r"><span class="star">★ ${p.rate}</span>· ${p.cat} · ${p.dist}</span>
+    <span class="r" style="margin-top:4px;color:var(--flare2)">${p.note}</span></span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
+}
+function pickCat(btn){$$('#cats .pill').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  toast(btn.textContent.trim()+' — filtered','🔎');}
+const AI_PICKS={
+  'I\'m bored':{e:'e2',line:'Cheap, outside, and Jordan is already down there.'},
+  'Something fun tonight':{e:'e1',line:'Sarah and Mike are both within a mile of it right now.'},
+  'Find something cheap':{e:'e2',line:'Free, and you get home before 9.'},
+  'Food + activity':{e:'e3',line:'Tacos at Luz first, then lanes two blocks away.'},
+  'Whole family':{e:'e7',line:'Shaded tables, easy parking, and your mom already saved it.'},
+  'Surprise me':{e:'e4',line:'You have never done a rooftop screening. Tasha said yes in 4 seconds.'}
+};
+function runAIIdx(i){runAI(PROMPTS[i]);}
+function runAI(p){
+  go('discover');
+  const slot=$('#ai-slot');
+  slot.innerHTML=`<div class="airesult"><div class="thinking"><span class="orb"></span>
+    <span style="flex:1"><span class="shimmer" style="display:block;width:70%"></span>
+    <span class="shimmer" style="display:block;width:45%;margin-top:8px"></span></span></div>
+    <div class="meta" style="padding:0 4px 4px">Reading who's free, what's open, and how far you'd have to drive…</div></div>`;
+  slot.scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(()=>{
+    const pick=AI_PICKS[p]||AI_PICKS['Surprise me'];const e=EVENTS.find(x=>x.id===pick.e);
+    slot.innerHTML=`<div class="airesult">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span class="badge ai">✦ Tonight's pick</span>
+        <button class="badge" onclick="runAI('Surprise me')">Try another</button></div>
+      <div style="display:flex;gap:13px">
+        <span style="width:62px;height:62px;border-radius:18px;display:grid;place-items:center;font-size:27px;flex:0 0 auto;background:linear-gradient(150deg,${e.g[0]},${e.g[1]})">${e.emoji}</span>
+        <span style="flex:1">
+          <b style="font-size:17px;font-weight:790;letter-spacing:-.3px;display:block">${e.t}</b>
+          <span class="meta" style="display:block;margin-top:4px">${e.when} · ${e.dist} · ${e.price}</span>
+          <span style="display:flex;align-items:center;gap:7px;margin-top:9px">${stack(e.friends,24)}
+            <span class="meta">${e.friends.map(f=>F[f].first).join(' + ')} nearby</span></span>
+        </span></div>
+      <div class="meta" style="margin:13px 0 14px;line-height:1.5;color:#B9CBD3">"${pick.line}"</div>
+      <div style="display:flex;gap:9px">
+        <button class="btn btn-ghost btn-sm" style="flex:0 0 auto;height:46px;padding:0 16px" onclick="openEvent('${e.id}')">Details</button>
+        <button class="btn btn-primary" style="flex:1;height:46px" onclick="createFromEvent('${e.id}')">Create plan</button></div>
+    </div>`;
+  },1250);
+}
+function openEvent(id){
+  const e=EVENTS.find(x=>x.id===id);
+  $('#ev-body').innerHTML=`
+    <div class="hero" style="background:linear-gradient(160deg,${e.g[0]},${e.g[1]});height:230px;font-size:76px;margin-bottom:-40px">${e.emoji}</div>
+    <div class="pad" style="position:relative">
+      <div style="display:flex;gap:7px;margin-bottom:11px"><span class="badge flare">${e.cat}</span><span class="badge">${e.price}</span><span class="badge">${e.dist}</span></div>
+      <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:29px;font-weight:800;letter-spacing:-.8px;margin:0 0 8px;line-height:1.1">${e.t}</h1>
+      <div style="font-size:14.5px;color:var(--flare2);font-weight:700">${e.when}</div>
+      <div class="airesult" style="margin:18px 0 0">
+        <span class="badge ai" style="margin-bottom:10px">✦ The short version</span>
+        <div style="font-size:14.5px;line-height:1.55;color:#D8DCE2">${e.d}</div>
+      </div>
+      <div class="sectionhead" style="padding-left:0"><h2>Who's going</h2></div>
+      ${e.friends.map(f=>`<div class="attendee">${av(F[f],40,true)}<span class="c"><b>${F[f].name}</b><span>${F[f].dist||'Nearby'}</span></span><span class="rsvpstate rs-yes">Going</span></div>`).join('')}
+      <div class="sectionhead" style="padding-left:0"><h2>Getting there</h2></div>
+      <div class="mapmini">
+        <svg viewBox="0 0 340 140" preserveAspectRatio="none" style="width:100%;height:100%">
+          <rect width="340" height="140" fill="#0C1016"/>
+          <g fill="#141A23"><rect x="10" y="10" width="90" height="45" rx="4"/><rect x="120" y="6" width="80" height="50" rx="4"/>
+          <rect x="220" y="14" width="100" height="42" rx="4"/><rect x="16" y="82" width="80" height="46" rx="4"/>
+          <rect x="118" y="86" width="88" height="44" rx="4"/><rect x="226" y="78" width="96" height="50" rx="4"/></g>
+          <g stroke="#232B37" stroke-width="8"><path d="M0 70h340"/><path d="M110 0v140"/><path d="M214 0v140"/></g>
+          <path d="M170 70 L214 70 L214 30" stroke="#FF6A3D" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="7 6"/>
+        </svg>
+        <div class="pinme"></div>
+      </div>
+      <div class="meta" style="margin-top:10px">${e.dist} · about 11 min drive from you</div>
+      <div style="height:24px"></div>
+    </div>`;
+  window._ev=id; openPage('page-event');
+}
+function planThisEvent(){closePage('page-event');createFromEvent(window._ev);}
+function createFromEvent(id){
+  const e=EVENTS.find(x=>x.id===id);
+  const p={id:'p'+Date.now(),t:e.t,emoji:e.emoji,date:e.when.split('·')[0].trim()+', Sep '+(e.tag==='tonight'?'1':'5'),
+    time:e.when.split('·')[1].trim(),g:e.g,state:'upcoming',loc:e.t,chat:'c-weekend',
+    people:['you',...e.friends],yes:['you'],budget:e.price+'/person',
+    items:[{time:e.when.split('·')[1].trim(),n:e.cat,s:e.t,e:e.emoji}],notes:['Created from Discover']};
+  PLANS.unshift(p);renderPlans();closeAll();go('plans');
+  setTimeout(()=>{toast('Plan created — invites sent','🎉');openPlan(p.id)},420);
+}
+
+/* ============================== PLANS ============================== */
+function setSeg(s){seg=s;$$('.segment button').forEach(b=>b.classList.toggle('on',b.dataset.seg===s));renderPlans();}
+function renderPlans(){
+  const list=PLANS.filter(p=>p.state===seg);
+  $('#plan-list').innerHTML=list.map(p=>{
+    const pct=Math.round(p.yes.length/p.people.length*100);
+    return `<button class="plancard ${p.state}" onclick="openPlan('${p.id}')">
+      <span class="top"><span><h3>${p.t} ${p.emoji}</h3><span class="date">${p.date} · ${p.time}</span></span>
+      ${p.state==='upcoming'?`<span class="badge ${p.yes.includes('you')?'live':'flare'}">${p.yes.includes('you')?"You're in":'Reply'}</span>`:'<span class="badge">Done</span>'}</span>
+      <ul class="tl">${p.items.map(i=>`<li><span class="node"></span><span class="t">${i.time}</span>
+        <span class="n">${i.e} ${i.n}<small>${i.s}</small></span></li>`).join('')}</ul>
+      <span class="foot"><span style="display:flex;align-items:center;gap:9px">${stack(p.people,26)}
+        <span class="meta">${p.people.length} people</span></span>
+        <span style="display:flex;align-items:center;gap:8px"><span class="meta">${p.yes.length}/${p.people.length} in</span>
+        <span class="rsvpbar"><i style="width:${pct}%"></i></span></span></span></button>`}).join('')
+    || `<div style="text-align:center;padding:60px 20px"><div style="font-size:40px">🗓</div>
+        <div style="font-size:17px;font-weight:750;margin-top:12px">Nothing here yet</div>
+        <div class="meta" style="margin-top:6px">Tap New plan and get something on the calendar.</div></div>`;
+  const up=PLANS.filter(p=>p.state==='upcoming');
+  $('#plans-sub').textContent=`${up.length} coming up · ${up.filter(p=>!p.yes.includes('you')).length} waiting on you`;
+  $('#tile-plans').textContent=PLANS.length;
+  $('#prof-plans').innerHTML=up.slice(0,2).map(p=>`<button class="listrow" onclick="openPlan('${p.id}')">
+    <span style="width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:19px;background:linear-gradient(150deg,${p.g[0]},${p.g[1]})">${p.emoji}</span>
+    <span class="c"><b>${p.t}</b><span>${p.date} · ${p.time}</span></span>
+    <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
+}
+function openPlan(id){
+  const p=PLANS.find(x=>x.id===id);curPlan=p;closeAll();
+  $('#pp-title').textContent=p.t;
+  $('#pp-rsvp').textContent=p.yes.includes('you')?"You're going":"I'm in";
+  $('#pp-rsvp').className='btn '+(p.yes.includes('you')?'btn-ghost':'btn-primary');
+  $('#pp-body').innerHTML=`
+    <div class="hero" style="background:linear-gradient(160deg,${p.g[0]},${p.g[1]})">${p.emoji}</div>
+    <div class="pad" style="position:relative">
+      <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.8px;margin:0 0 8px">${p.t}</h1>
+      <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge flare">${p.date}</span><span class="badge">${p.time}</span><span class="badge">${p.budget}</span></div>
+      <div class="meta" style="margin:12px 0 14px">📍 ${p.loc}</div>
+      <div class="mapmini">
+        <svg viewBox="0 0 340 140" preserveAspectRatio="none" style="width:100%;height:100%">
+          <rect width="340" height="140" fill="#0C1016"/>
+          <g fill="#141A23"><rect x="12" y="8" width="92" height="48" rx="4"/><rect x="124" y="10" width="76" height="46" rx="4"/>
+          <rect x="222" y="6" width="100" height="50" rx="4"/><rect x="14" y="84" width="86" height="44" rx="4"/>
+          <rect x="120" y="88" width="84" height="42" rx="4"/><rect x="224" y="80" width="98" height="48" rx="4"/></g>
+          <g stroke="#232B37" stroke-width="8"><path d="M0 70h340"/><path d="M112 0v140"/><path d="M212 0v140"/></g>
+        </svg><div class="pinme"></div></div>
+      <div class="sectionhead" style="padding-left:0"><h2>The run of show</h2><button onclick="toast('Itinerary editing is stubbed','✏️')">Edit</button></div>
+      <ul class="tl" style="margin-top:0">${p.items.map(i=>`<li><span class="node"></span><span class="t">${i.time}</span>
+        <span class="n">${i.e} ${i.n}<small>${i.s}</small></span></li>`).join('')}</ul>
+      <div class="sectionhead" style="padding-left:0"><h2>Who's in</h2><button onclick="toast('Invite sheet is stubbed','➕')">Invite</button></div>
+      <div id="pp-att">${p.people.map(f=>`<div class="attendee">${av(F[f],40,true)}
+        <span class="c"><b>${f==='you'?'You':F[f].name}</b><span>${p.yes.includes(f)?'Coming':'Hasn\'t answered'}</span></span>
+        <span class="rsvpstate ${p.yes.includes(f)?'rs-yes':'rs-wait'}">${p.yes.includes(f)?'Going':'Waiting'}</span></div>`).join('')}</div>
+      ${p.notes.length?`<div class="sectionhead" style="padding-left:0"><h2>Shared notes</h2></div>
+      <ul class="notes">${p.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}
+      <div class="airesult" style="margin:18px 0 0">
+        <span class="badge ai" style="margin-bottom:10px">✦ Heads up</span>
+        <div style="font-size:14px;line-height:1.55;color:#D8DCE2">Rain moves in around 9. The rooftop has cover, but leave 10 minutes earlier if you're driving from the north side.</div>
+      </div>
+      <div style="height:30px"></div>
+    </div>`;
+  openPage('page-plan');
+}
+function rsvpYes(){
+  if(!curPlan||curPlan.yes.includes('you'))return;
+  curPlan.yes.push('you');renderPlans();openPlan(curPlan.id);toast("You're going — the group knows",'🎉');
+}
+function openChatFromPlan(){closePage('page-plan');setTimeout(()=>{go('messages');openChat(curPlan.chat)},220);}
+/* ============================== AI PLAN BUILDER ============================== */
+function fillAI(t){$('#ai-input').value=t;}
+function runAIPlan(){
+  const txt=($('#ai-input').value||'').trim()||'Five of us Saturday — Mexican food then something fun. Under $50 each.';
+  const body=$('#ai-plan-body');
+  body.innerHTML=`<h3 style="margin-bottom:14px">Building your night…</h3>
+    <div class="thinking"><span class="orb"></span><span style="flex:1">
+      <span class="shimmer" style="display:block;width:80%"></span>
+      <span class="shimmer" style="display:block;width:55%;margin-top:9px"></span>
+      <span class="shimmer" style="display:block;width:66%;margin-top:9px"></span></span></div>
+    <div class="meta" id="ai-step" style="padding:4px">Checking who's free Saturday…</div>`;
+  const steps=["Checking who's free Saturday…","Finding Mexican spots with room for 6…","Adding something to do after…","Pricing it out per person…"];
+  let i=0;const tick=setInterval(()=>{i++;if(i<steps.length)$('#ai-step').textContent=steps[i];},420);
+  setTimeout(()=>{
+    clearInterval(tick);
+    const draft={t:'Saturday Night',emoji:'🌮',date:'Saturday, Sep 5',time:'7:00 PM',g:['#2B1A14','#FF8F6B'],
+      loc:'Taqueria Luz · Bishop Arts',people:['you','sarah','mike','jordan','tasha','leo'],budget:'$43/person',
+      items:[{time:'7:00 PM',n:'Dinner',s:'Taqueria Luz · Bishop Arts',e:'🌮'},
+             {time:'8:30 PM',n:'Bowling',s:'Cosmic Bowl · 2 lanes held',e:'🎳'},
+             {time:'10:30 PM',n:'Dessert',s:'Sweet Firefly',e:'🍦'}],
+      notes:['Under your $50 cap with tip included','Luz takes reservations up to 8 people','Cosmic Bowl gets loud after 11 — dessert first if you want to talk']};
+    body.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3>${draft.t} ${draft.emoji}</h3><button class="badge ai" onclick="runAIPlan()">Redo</button></div>
+      <div class="meta" style="margin-bottom:16px">${draft.date} · 6 people · everything within 1.4 miles</div>
+      <ul class="tl">${draft.items.map(i=>`<li><span class="node"></span><span class="t">${i.time}</span>
+        <span class="n">${i.e} ${i.n}<small>${i.s}</small></span></li>`).join('')}</ul>
+      <div class="card" style="margin:18px 0;padding:15px;display:flex;align-items:center;justify-content:space-between">
+        <div><div class="meta">Estimated per person</div>
+          <div class="money"><span style="font-size:20px;font-weight:700">$</span><b>43</b></div></div>
+        <div style="text-align:right"><div class="meta">Your cap</div><div style="font-size:15px;font-weight:750;color:var(--live)">$50 · under by $7</div></div>
+      </div>
+      <ul class="notes" style="margin-bottom:16px">${draft.notes.map(n=>`<li>${n}</li>`).join('')}</ul>
+      <div style="display:flex;gap:9px">
+        <button class="btn btn-ghost" style="flex:0 0 auto;padding:0 18px" onclick="closeAll()">Not it</button>
+        <button class="btn btn-primary" style="flex:1" onclick="commitAI()">Create plan</button></div>`;
+    window._draft=draft;
+  },1750);
+}
+function commitAI(){
+  const d=window._draft;
+  const p={id:'p'+Date.now(),...d,state:'upcoming',chat:'c-weekend',yes:['you']};
+  PLANS.unshift(p);renderPlans();closeAll();
+  $('#ai-plan-body').innerHTML='';setTimeout(resetAISheet,500);
+  go('plans');setTimeout(()=>{toast('Plan created — 5 invites sent','🎉');openPlan(p.id)},420);
+}
+function resetAISheet(){
+  $('#ai-plan-body').innerHTML=`<h3 style="margin-bottom:12px">What's the plan?</h3>
+    <textarea class="input" id="ai-input" placeholder="I want to hang out with five friends Saturday. We want Mexican food and something fun afterward. Keep it under $50 per person."></textarea>
+    <div class="pillrow" style="padding:12px 0 0;margin:0 -20px 0 0">
+      <button class="pill" onclick="fillAI('Five of us Saturday — Mexican food then something fun. Under $50 each.')">Saturday, 5 people, under $50</button>
+      <button class="pill" onclick="fillAI('Low key family dinner Sunday, somewhere my mom would love.')">Family dinner Sunday</button>
+      <button class="pill" onclick="fillAI('Something active tonight that is basically free.')">Free + active tonight</button>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:18px" onclick="runAIPlan()">Build my plan</button>`;
+}
+
+/* ============================== MANUAL CREATE ============================== */
+let NEW={step:0,name:'',emoji:'🍕',day:'Fri 4',start:'7:00 PM',end:'11:00 PM',loc:'',people:[],desc:'',
+  items:[{time:'7:00 PM',n:'Dinner',s:'',e:'🍽'}],budget:35,rsvp:true};
+function resetNew(pre){NEW={step:0,name:'',emoji:'🍕',day:'Fri 4',start:'7:00 PM',end:'11:00 PM',loc:'',
+  people:pre?[pre]:[],desc:'',items:[{time:'7:00 PM',n:'Dinner',s:'',e:'🍽'}],budget:35,rsvp:true};renderNew();}
+const DAYS=[['Tue','1'],['Wed','2'],['Thu','3'],['Fri','4'],['Sat','5'],['Sun','6'],['Mon','7']];
+const EMOJIS=['🍕','🎳','🎬','🏀','🌮','🎵','🌳','🎂'];
+function renderNew(){
+  $$('.steps i').forEach((el,i)=>el.classList.toggle('on',i<=NEW.step));
+  $('#new-title').textContent=['New plan','Who and where','Details'][NEW.step];
+  $('#new-next').textContent=NEW.step===2?'Create plan':'Continue';
+  const b=$('#new-body');
+  if(NEW.step===0){
+    b.innerHTML=`
+      <div class="field"><label>What are you calling it?</label>
+        <input class="input" id="n-name" value="${NEW.name}" placeholder="Friday Night" oninput="NEW.name=this.value"/></div>
+      <div class="field"><label>Vibe</label>
+        <div class="selrow">${EMOJIS.map(e=>`<button class="selchip ${NEW.emoji===e?'on':''}" style="padding:0 14px;font-size:19px" onclick="NEW.emoji='${e}';renderNew()">${e}</button>`).join('')}</div></div>
+      <div class="field"><label>Day</label>
+        <div class="picker">${DAYS.map(d=>`<button class="dchip ${NEW.day===d[0]+' '+d[1]?'on':''}" onclick="NEW.day='${d[0]} ${d[1]}';renderNew()">
+          <small>${d[0]}</small><b>${d[1]}</b></button>`).join('')}</div></div>
+      <div class="split">
+        <div class="field"><label>Starts</label><input class="input" value="${NEW.start}" oninput="NEW.start=this.value"/></div>
+        <div class="field"><label>Ends</label><input class="input" value="${NEW.end}" oninput="NEW.end=this.value"/></div>
+      </div>`;
+  } else if(NEW.step===1){
+    b.innerHTML=`
+      <div class="field"><label>Where</label>
+        <input class="input" value="${NEW.loc}" placeholder="Zoli's NY Pizza · Deep Ellum" oninput="NEW.loc=this.value"/></div>
+      <div class="field"><label>Invite</label>
+        <div class="selrow">${['sarah','mike','jordan','tasha','leo','nina','mom','dad'].map(id=>`
+          <button class="selchip ${NEW.people.includes(id)?'on':''}" onclick="togglePerson('${id}')">${av(F[id],32)} ${F[id].first}</button>`).join('')}</div>
+        <div class="meta" style="margin-top:10px">${NEW.people.length} invited${NEW.people.length?' · '+NEW.people.filter(p=>F[p].status==='live').length+' free right now':''}</div></div>
+      <div class="field"><label>Anything they should know?</label>
+        <textarea class="input" placeholder="Meet at my place first, I'm driving." oninput="NEW.desc=this.value">${NEW.desc}</textarea></div>`;
+  } else {
+    b.innerHTML=`
+      <div class="field"><label>Run of show</label>
+        ${NEW.items.map((it,i)=>`<div style="display:flex;gap:9px;margin-bottom:9px">
+          <input class="input" style="width:104px;flex:0 0 auto;text-align:center" value="${it.time}" oninput="NEW.items[${i}].time=this.value"/>
+          <input class="input" style="flex:1" value="${it.n}" placeholder="Dinner" oninput="NEW.items[${i}].n=this.value"/>
+        </div>`).join('')}
+        <button class="btn btn-ghost btn-block btn-sm" style="height:44px" onclick="NEW.items.push({time:'9:00 PM',n:'',s:'',e:'✨'});renderNew()">+ Add a stop</button></div>
+      <div class="field"><label>Budget per person</label>
+        <div class="card" style="padding:16px">
+          <div class="money" style="margin-bottom:12px"><span style="font-size:20px;font-weight:700">$</span><b id="bud">${NEW.budget}</b></div>
+          <input type="range" min="0" max="120" value="${NEW.budget}" style="width:100%;accent-color:#FF6A3D"
+            oninput="NEW.budget=+this.value;document.getElementById('bud').textContent=this.value"/>
+          <div class="meta" style="margin-top:6px">Rally warns people before they RSVP if it's over their usual.</div>
+        </div></div>
+      <div class="listrow"><span class="c"><b>Require an RSVP</b><span>Nudge anyone who hasn't answered 24h before</span></span>
+        <span class="toggle ${NEW.rsvp?'on':''}" onclick="NEW.rsvp=!NEW.rsvp;this.classList.toggle('on')"><i></i></span></div>
+      <div style="height:20px"></div>`;
+  }
+}
+function togglePerson(id){NEW.people.includes(id)?NEW.people=NEW.people.filter(p=>p!==id):NEW.people.push(id);renderNew();}
+function backNew(){ if(NEW.step===0){closePage('page-new');} else {NEW.step--;renderNew();} }
+function nextNew(){
+  if(NEW.step<2){NEW.step++;renderNew();$('#page-new .scroll').scrollTop=0;return;}
+  const d=DAYS.find(x=>NEW.day===x[0]+' '+x[1]);
+  const full={Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday',Mon:'Monday'}[d[0]];
+  const p={id:'p'+Date.now(),t:NEW.name||'Untitled plan',emoji:NEW.emoji,date:full+', Sep '+d[1],time:NEW.start,
+    g:['#2B1A3A','#8B7BFF'],state:'upcoming',loc:NEW.loc||'Location to be decided',chat:'c-weekend',
+    people:['you',...NEW.people],yes:['you'],budget:NEW.budget?'$'+NEW.budget+'/person':'Free',
+    items:NEW.items.filter(i=>i.n).map(i=>({...i,s:i.s||NEW.loc||'TBD',e:i.e||'✨'})),
+    notes:NEW.desc?[NEW.desc]:[]};
+  if(!p.items.length)p.items=[{time:NEW.start,n:'Meet up',s:p.loc,e:NEW.emoji}];
+  PLANS.unshift(p);renderPlans();closePage('page-new');go('plans');
+  setTimeout(()=>{toast('Plan created — '+NEW.people.length+' invites sent','🎉');openPlan(p.id)},420);
+}
+
+/* ============================== MESSAGES ============================== */
+function renderThreads(){
+  $('#thread-list').innerHTML=CHATS.map(c=>{
+    const last=c.msgs[c.msgs.length-1];
+    const who=last.f==='you'?'You: ':(c.type==='group'?F[last.f].first+': ':'');
+    const avh=c.type==='group'
+      ? `<span style="width:46px;height:46px;border-radius:16px;background:var(--surface2);display:grid;place-items:center;flex:0 0 auto">${stack(c.members.slice(0,2),24)}</span>`
+      : av(F[c.members[0]],46,true);
+    return `<button class="thread ${c.unread?'unread':''}" onclick="openChat('${c.id}')">${avh}
+      <span class="c"><span class="n"><h4>${c.name}</h4><span class="time">${c.time}</span></span>
+      <span class="prev">${who}${last.t}</span></span>
+      ${c.unread?'<span class="unreaddot"></span>':''}</button>`}).join('');
+  const un=CHATS.reduce((a,c)=>a+(c.unread?1:0),0);
+  $('#messages .sub').textContent=`${un} unread · ${CHATS.length} conversations`;
+  $$('#nav .navdot').forEach(d=>d.style.display=un?'block':'none');
+}
+function openChat(id){
+  const c=CHATS.find(x=>x.id===id);curChat=c;c.unread=0;renderThreads();
+  $('#chat-name').textContent=c.name;
+  $('#chat-sub').textContent=c.type==='group'?c.members.length+1+' people · 2 free tonight':(F[c.members[0]].status==='live'?'Active now':F[c.members[0]].ago);
+  $('#chat-av').innerHTML=c.type==='group'?stack(c.members.slice(0,2),30):av(F[c.members[0]],34,true);
+  drawMsgs();openPage('page-chat');
+}
+function drawMsgs(){
+  const c=curChat;
+  $('#chat-body').innerHTML=c.msgs.map((m,i)=>{
+    const me=m.f==='you';const prev=c.msgs[i-1];
+    const showWho=!me&&c.type==='group'&&(!prev||prev.f!==m.f);
+    return `<div class="msgrow" style="align-items:${me?'flex-end':'flex-start'}">
+      <div class="bubble ${me?'me':'them'}">${showWho?`<div class="who" style="color:${F[m.f].c[0]}">${F[m.f].first}</div>`:''}${m.t}
+      ${m.rx?`<span class="rx">${m.rx}</span>`:''}</div></div>`}).join('')+'<div style="height:6px"></div>';
+  const sug=c.sug?`<div class="smartsug">
+      <span style="width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:19px;background:rgba(76,214,245,.13)">${c.sug.e}</span>
+      <span class="t"><b>${c.sug.b}</b><span>${c.sug.s}</span></span>
+      <button class="btn btn-primary btn-sm" onclick="sugToPlan()">Build it</button></div>`:'';
+  $('#chat-sug').innerHTML=sug;
+  const b=$('#chat-body');b.scrollTop=b.scrollHeight;
+}
+const TRIGGERS=[[/bowl/i,{e:'🎳',b:'Turn this into a plan',s:'Cosmic Bowl · Friday · 3 friends free'}],
+  [/eat|food|dinner|taco|pizza/i,{e:'🌮',b:'Turn this into a plan',s:'Taqueria Luz · 0.9 mi · opens at 5'}],
+  [/movie|film/i,{e:'🎬',b:'Turn this into a plan',s:'Rooftop screening Saturday · $12'}],
+  [/hoop|ball|park|run/i,{e:'🏀',b:'Turn this into a plan',s:'Exall Park · Sunday morning'}]];
+function sendMsg(){
+  const inp=$('#chat-input');const t=inp.value.trim();if(!t)return;
+  curChat.msgs.push({f:'you',t});inp.value='';curChat.time='now';
+  const hit=TRIGGERS.find(([re])=>re.test(t));
+  curChat.sug=hit?hit[1]:null;
+  drawMsgs();renderThreads();
+  if(hit)setTimeout(()=>$('#chat-sug').scrollIntoView({behavior:'smooth',block:'nearest'}),120);
+  setTimeout(()=>{
+    const other=curChat.members[0];
+    curChat.msgs.push({f:other,t:['bet','say less 😤','im down','what time tho'][Math.floor(Math.random()*4)],rx:'🔥'});
+    drawMsgs();renderThreads();
+  },1400);
+}
+function sugToPlan(){
+  const s=curChat.sug;closePage('page-chat');
+  setTimeout(()=>{
+    resetNew();NEW.name=s.e==='🎳'?'Bowling Night':s.e==='🌮'?'Taco Run':'Hang Out';NEW.emoji=s.e;
+    NEW.people=curChat.members.slice();NEW.loc=s.s.split('·')[0].trim();
+    renderNew();openPage('page-new');toast('Pulled the details out of the chat','✦');
+  },240);
+}
+
+/* ============================== PROFILE / FRIENDS / NOTIFS ============================== */
+function setAvail(a){avail=a;$$('.avail').forEach(b=>b.classList.toggle('on',b.dataset.av===a));
+  $('#avail-note').textContent={free:"Your crew can see you're down to hang out today.",
+    maybe:'Friends see you might be free later tonight.',busy:"You're off the radar for plans today."}[a];
+  toast({free:'Set to available',maybe:'Set to maybe later',busy:'Set to busy'}[a],
+    {free:'🟢',maybe:'🟡',busy:'🔴'}[a]);
+}
+function renderProfile(){
+  $('#online-rail').innerHTML=['sarah','mike','tasha','nina','jordan'].map(id=>{const f=F[id];
+    return `<button class="railcard" style="background:var(--surface);border-color:var(--line)" onclick="openFriend('${id}')">
+      ${av(f,36,true)}<span><b>${f.first}</b><span>${f.status==='live'?'Free now':'Maybe later'}</span></span></button>`}).join('');
+}
+function renderNotifs(){
+  $('#notif-list').innerHTML=NOTIFS.map((n,i)=>`<button class="notif ${n.fresh?'fresh':''}" onclick="notifGo(${i})">
+    <span class="ic">${n.e}</span><span style="flex:1"><b>${n.b}</b><span>${n.s}</span></span></button>`).join('');
+}
+function notifGo(i){const n=NOTIFS[i];n.fresh=0;closeAll();setTimeout(()=>{n.go&&n.go();renderNotifs();},260);}
+function clearNotifs(){NOTIFS.forEach(n=>n.fresh=0);renderNotifs();$$('.iconbtn .dot').forEach(d=>d.style.display='none');toast('All caught up','✓');}
+function renderFriends(){
+  const groups=[{n:'Close Friends',m:['sarah','mike','jordan'],s:'Live location'},
+    {n:'Family',m:['mom','dad','nina'],s:'Live location'},
+    {n:'Weekend Crew',m:['sarah','mike','jordan','tasha','leo'],s:'Approximate only'}];
+  $('#friends-body').innerHTML=`
+    <div class="sectionhead" style="padding-left:0;padding-top:6px"><h2>Groups</h2><button onclick="toast('Group builder is stubbed','👥')">New group</button></div>
+    ${groups.map(g=>`<button class="listrow" onclick="toast('${g.n} · ${g.s}','👥')">
+      <span style="width:44px;height:44px;border-radius:15px;background:var(--surface2);display:grid;place-items:center;flex:0 0 auto">${stack(g.m.slice(0,2),22)}</span>
+      <span class="c"><b>${g.n}</b><span>${g.m.length} people · ${g.s}</span></span>
+      <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>`).join('')}
+    <div class="sectionhead" style="padding-left:0"><h2>All friends</h2><button onclick="openPage('page-add')">Add</button></div>
+    ${['sarah','mike','jordan','tasha','leo','nina','mom','dad'].map(id=>{const f=F[id];
+      return `<div class="listrow"><span>${av(f,42,true)}</span>
+        <span class="c"><b>${f.name}</b><span>${f.status==='live'?'Sharing live':'Sharing approximate'}</span></span>
+        <span class="toggle ${f.status!=='off'?'on':''}" onclick="this.classList.toggle('on');toast(this.classList.contains('on')?'Sharing with ${f.first}':'Stopped sharing with ${f.first}','📍')"><i></i></span></div>`}).join('')}
+    <div style="height:26px"></div>`;
+  $('#requests').innerHTML=[['Priya Raman','PR','2 mutual friends'],['Dev Carter','DC','Met at Jordan\'s birthday']]
+    .map(([n,i,s])=>`<div class="listrow"><span class="avatar" style="width:42px;height:42px;background:linear-gradient(140deg,#4CD6F5,#8B7BFF)">${i}</span>
+      <span class="c"><b>${n}</b><span>${s}</span></span>
+      <button class="btn btn-primary btn-sm" onclick="this.closest('.listrow').remove();toast('${n.split(' ')[0]} added','🤝')">Accept</button></div>`).join('');
+}
+function addByUser(){const v=$('#add-user').value.trim();if(!v)return toast('Type a username first','⌨️');
+  $('#add-user').value='';toast('Request sent to '+(v.startsWith('@')?v:'@'+v),'🤝');}
+function renderQR(){
+  const p=[1,1,1,1,0,1,1,1,1, 1,0,0,1,1,0,1,0,1, 1,0,1,0,1,1,0,1,1, 1,1,0,1,0,0,1,0,1,
+           0,1,1,0,1,1,0,1,0, 1,0,1,1,0,1,1,0,1, 1,1,0,1,1,0,1,1,1, 1,0,1,0,0,1,0,0,1, 1,1,1,0,1,1,1,1,1];
+  $('#qr').innerHTML=p.map(v=>`<i class="${v?'':'o'}"></i>`).join('');
+}
+
+/* ============================== INIT ============================== */
+function tick(){const d=new Date();let h=d.getHours()%12||12;
+  $('#clock').textContent=h+':'+String(d.getMinutes()).padStart(2,'0');}
+applyBrand();renderMap();renderShare();renderDiscover();renderPlans();renderThreads();renderProfile();renderNotifs();renderFriends();renderQR();renderNew();
+tick();setInterval(tick,20000);
+setTimeout(()=>{ $('.splash').remove(); },2000);
+</script>
+</body>
+</html>
