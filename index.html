@@ -327,8 +327,19 @@ input,textarea{font:inherit;color:inherit}
   transition:transform .18s var(--ease);
 }
 .plancard:active{transform:scale(.98)}
-.plancard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--flare),var(--flare2))}
-.plancard.past::before{background:#333944}
+.coverwrap{position:relative;overflow:hidden;display:grid;place-items:center;flex:0 0 auto}
+.covertex{position:absolute;inset:0;pointer-events:none}
+.covertex span{position:absolute;line-height:1}
+.covrail{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}
+.covrail::-webkit-scrollbar{display:none}
+.covopt{flex:0 0 auto;width:66px;text-align:center}
+.covopt .sw{height:80px;width:66px;border-radius:18px;overflow:hidden;position:relative;display:grid;place-items:center;
+  border:2px solid transparent;transition:border-color .2s var(--ease),transform .16s var(--ease)}
+.covopt:active .sw{transform:scale(.94)}
+.covopt.on .sw{border-color:var(--flare);box-shadow:0 10px 22px -12px rgba(255,106,61,.95)}
+.covopt small{display:block;font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:650;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.covopt.on small{color:var(--text)}
 .plancard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .plancard h3{margin:0;font-size:19px;font-weight:800;letter-spacing:-.4px}
 .plancard .date{font-size:12.5px;color:var(--flare2);font-weight:750;margin-top:3px}
@@ -989,6 +1000,45 @@ function applyBrand(){
   document.querySelectorAll('[data-brand]').forEach(el=>el.textContent=BRAND[el.dataset.brand]);
 }
 
+/* ===== COVERS — the one surface the user owns. =====
+   Every preset is drawn from the locked palette so any two look right
+   side by side. Variance is quarantined inside the cover bounds: it never
+   touches nav, buttons, or status colors. */
+const COVERS=[
+  {id:'lateNight', n:'Late Night', a:'#3A1B2E', b:'#FF6A3D'},
+  {id:'goldenHour',n:'Golden Hour',a:'#2A2010', b:'#FFC24B'},
+  {id:'afterDark', n:'After Dark', a:'#1B1330', b:'#8B7BFF'},
+  {id:'coolWater', n:'Cool Water', a:'#123043', b:'#4CD6F5'},
+  {id:'parkDay',   n:'Park Day',   a:'#123829', b:'#9BE84B'},
+  {id:'emberRoom', n:'Ember Room', a:'#2B1A14', b:'#FF8F6B'},
+  {id:'lastCall',  n:'Last Call',  a:'#241338', b:'#C56BFF'},
+  {id:'firstLight',n:'First Light',a:'#31201A', b:'#FFA14A'},
+  {id:'blueHour',  n:'Blue Hour',  a:'#101B2E', b:'#3F86FF'},
+  {id:'quietRoom', n:'Quiet Room', a:'#15171E', b:'#3C4454'}
+];
+const TEX=[[10,20,-16,.9],[34,64,14,.7],[62,14,22,.75],[80,50,-10,1],
+           [18,82,10,.65],[46,36,-22,.6],[90,78,16,.7],[66,90,8,.85]];
+function cv(p){return COVERS.find(c=>c.id===p.cover)||{a:(p.g?p.g[0]:'#2B1A3A'),b:(p.g?p.g[1]:'#8B7BFF')};}
+function coverGrad(p,ang){const c=cv(p);return 'linear-gradient('+(ang||150)+'deg,'+c.a+','+c.b+')';}
+function coverTexture(emoji,scale){
+  return '<span class="covertex">'+TEX.map(function(t){
+    return '<span style="left:'+t[0]+'%;top:'+t[1]+'%;transform:translate(-50%,-50%) rotate('+t[2]+'deg);'+
+           'font-size:'+Math.round(scale*t[3])+'px;opacity:.15">'+emoji+'</span>';}).join('')+'</span>';
+}
+function coverBlock(p,size,radius,em){
+  return '<span class="coverwrap" style="width:'+size+'px;height:'+size+'px;border-radius:'+radius+';background:'+coverGrad(p)+'">'+
+    coverTexture(p.emoji,Math.round(size*.32))+
+    '<span style="position:relative;font-size:'+em+'px">'+p.emoji+'</span></span>';
+}
+function coverRail(sel,emoji,fn){
+  return '<div class="covrail">'+COVERS.map(function(c){
+    return '<button class="covopt '+(c.id===sel?'on':'')+'" onclick="'+fn+'(\''+c.id+'\')">'+
+      '<span class="sw" style="background:linear-gradient(150deg,'+c.a+','+c.b+')">'+
+      coverTexture(emoji,20)+'<span style="position:relative;font-size:24px">'+emoji+'</span></span>'+
+      '<small>'+c.n+'</small></button>';}).join('')+'</div>';
+}
+const CAT_COVER={Music:'afterDark',Outdoors:'parkDay',Games:'lateNight',Movies:'blueHour',Sports:'goldenHour',Food:'emberRoom'};
+
 /* ============================== DATA ============================== */
 const F = {
   sarah:{id:'sarah',name:'Sarah Okafor',first:'Sarah',init:'SO',c:['#FF6A3D','#FFA14A'],status:'live',place:'At Starbucks on Greenville',ago:'Active 4 min ago',x:31,y:33,dist:'0.4 mi away'},
@@ -1024,24 +1074,24 @@ const PLACES = [
   {t:'Halcyon Coffee',emoji:'☕️',cat:'Coffee · $',dist:'0.5 mi',rate:'4.7',note:'Your usual Saturday spot'}
 ];
 let PLANS = [
-  {id:'p1',t:'Friday Night',emoji:'🍕',date:'Friday, Sep 4',time:'7:00 PM',g:['#3A1B2E','#FF6A3D'],state:'upcoming',
+  {id:'p1',cover:'lateNight',t:'Friday Night',emoji:'🍕',date:'Friday, Sep 4',time:'7:00 PM',g:['#3A1B2E','#FF6A3D'],state:'upcoming',
    loc:'Zoli\'s NY Pizza · Deep Ellum',chat:'c-weekend',people:['you','sarah','mike','jordan'],yes:['you','sarah','mike'],
    budget:'$38/person',
    items:[{time:'7:00 PM',n:'Dinner',s:'Zoli\'s NY Pizza',e:'🍕'},{time:'8:30 PM',n:'Movie',s:'Alamo Drafthouse',e:'🎬'},{time:'10:45 PM',n:'Dessert',s:'Sweet Firefly',e:'🍦'}],
    notes:['Mike is driving — 4 seats, meet at his place 6:40','Tickets already bought for the 8:30 showing','Jordan still hasn\'t answered, poke him']},
-  {id:'p2',t:'Rooftop Movie',emoji:'🎬',date:'Saturday, Sep 5',time:'8:15 PM',g:['#1C2E4A','#4CD6F5'],state:'upcoming',
+  {id:'p2',cover:'coolWater',t:'Rooftop Movie',emoji:'🎬',date:'Saturday, Sep 5',time:'8:15 PM',g:['#1C2E4A','#4CD6F5'],state:'upcoming',
    loc:'The Continental Rooftop',chat:'c-weekend',people:['you','sarah','leo','tasha','nina'],yes:['you','sarah','leo','tasha','nina'],
    budget:'$12/person',
    items:[{time:'7:15 PM',n:'Meet up',s:'Lobby bar',e:'🍹'},{time:'8:15 PM',n:'Spirited Away',s:'Rooftop screen',e:'🎬'},{time:'10:30 PM',n:'Late tacos',s:'Revolver Taco',e:'🌮'}],
    notes:['Bring a hoodie, it gets cold up there','Parking garage on Elm is $8 flat']},
-  {id:'p3',t:'Sunday Hoops',emoji:'🏀',date:'Sunday, Sep 6',time:'10:00 AM',g:['#2A2010','#FFC24B'],state:'upcoming',
+  {id:'p3',cover:'goldenHour',t:'Sunday Hoops',emoji:'🏀',date:'Sunday, Sep 6',time:'10:00 AM',g:['#2A2010','#FFC24B'],state:'upcoming',
    loc:'Exall Park Courts',chat:'c-mike',people:['you','mike','leo'],yes:['you','mike'],budget:'Free',
    items:[{time:'10:00 AM',n:'Run games',s:'Exall Park',e:'🏀'},{time:'12:00 PM',n:'Breakfast tacos',s:'Tacodeli',e:'🌯'}],
    notes:['First to 11, winners stay on']},
-  {id:'p4',t:'Jordan\'s Birthday',emoji:'🎂',date:'Saturday, Aug 22',time:'8:00 PM',g:['#2B1A3A','#8B7BFF'],state:'past',
+  {id:'p4',cover:'lastCall',t:'Jordan\'s Birthday',emoji:'🎂',date:'Saturday, Aug 22',time:'8:00 PM',g:['#2B1A3A','#8B7BFF'],state:'past',
    loc:'Ruins · Deep Ellum',chat:'c-weekend',people:['you','sarah','mike','jordan','tasha'],yes:['you','sarah','mike','jordan','tasha'],budget:'$45/person',
    items:[{time:'8:00 PM',n:'Dinner',s:'Monkey King Noodle',e:'🍜'},{time:'10:00 PM',n:'Ruins',s:'Deep Ellum',e:'🎶'}],notes:['Photos are in the group chat']},
-  {id:'p5',t:'Lake Day',emoji:'⛵️',date:'Sunday, Aug 9',time:'11:00 AM',g:['#123043','#4CD6F5'],state:'past',
+  {id:'p5',cover:'blueHour',t:'Lake Day',emoji:'⛵️',date:'Sunday, Aug 9',time:'11:00 AM',g:['#123043','#4CD6F5'],state:'past',
    loc:'White Rock Lake',chat:'c-family',people:['you','mom','dad','nina'],yes:['you','mom','dad','nina'],budget:'$20/person',
    items:[{time:'11:00 AM',n:'Kayaks',s:'White Rock Paddle',e:'🛶'},{time:'1:30 PM',n:'Picnic',s:'Sunset Bay',e:'🧺'}],notes:[]}
 ];
@@ -1263,7 +1313,7 @@ function createFromEvent(id){
   const e=EVENTS.find(x=>x.id===id);
   const p={id:'p'+Date.now(),t:e.t,emoji:e.emoji,date:e.when.split('·')[0].trim()+', Sep '+(e.tag==='tonight'?'1':'5'),
     time:e.when.split('·')[1].trim(),g:e.g,state:'upcoming',loc:e.t,chat:'c-weekend',
-    people:['you',...e.friends],yes:['you'],budget:e.price+'/person',
+    cover:CAT_COVER[e.cat]||'lateNight',people:['you',...e.friends],yes:['you'],budget:e.price+'/person',
     items:[{time:e.when.split('·')[1].trim(),n:e.cat,s:e.t,e:e.emoji}],notes:['Created from Discover']};
   PLANS.unshift(p);renderPlans();closeAll();go('plans');
   setTimeout(()=>{toast('Plan created — invites sent','🎉');openPlan(p.id)},420);
@@ -1276,7 +1326,9 @@ function renderPlans(){
   $('#plan-list').innerHTML=list.map(p=>{
     const pct=Math.round(p.yes.length/p.people.length*100);
     return `<button class="plancard ${p.state}" onclick="openPlan('${p.id}')">
-      <span class="top"><span><h3>${p.t} ${p.emoji}</h3><span class="date">${p.date} · ${p.time}</span></span>
+      <span class="top"><span style="display:flex;gap:12px;align-items:center;flex:1;min-width:0">
+        ${coverBlock(p,54,'17px',22)}
+        <span style="min-width:0"><h3>${p.t}</h3><span class="date">${p.date} · ${p.time}</span></span></span>
       ${p.state==='upcoming'?`<span class="badge ${p.yes.includes('you')?'live':'flare'}">${p.yes.includes('you')?"You're in":'Reply'}</span>`:'<span class="badge">Done</span>'}</span>
       <ul class="tl">${p.items.map(i=>`<li><span class="node"></span><span class="t">${i.time}</span>
         <span class="n">${i.e} ${i.n}<small>${i.s}</small></span></li>`).join('')}</ul>
@@ -1291,7 +1343,7 @@ function renderPlans(){
   $('#plans-sub').textContent=`${up.length} coming up · ${up.filter(p=>!p.yes.includes('you')).length} waiting on you`;
   $('#tile-plans').textContent=PLANS.length;
   $('#prof-plans').innerHTML=up.slice(0,2).map(p=>`<button class="listrow" onclick="openPlan('${p.id}')">
-    <span style="width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:19px;background:linear-gradient(150deg,${p.g[0]},${p.g[1]})">${p.emoji}</span>
+    ${coverBlock(p,42,'14px',19)}
     <span class="c"><b>${p.t}</b><span>${p.date} · ${p.time}</span></span>
     <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>`).join('');
 }
@@ -1301,7 +1353,8 @@ function openPlan(id){
   $('#pp-rsvp').textContent=p.yes.includes('you')?"You're going":"I'm in";
   $('#pp-rsvp').className='btn '+(p.yes.includes('you')?'btn-ghost':'btn-primary');
   $('#pp-body').innerHTML=`
-    <div class="hero" style="background:linear-gradient(160deg,${p.g[0]},${p.g[1]})">${p.emoji}</div>
+    <div class="hero" style="background:${coverGrad(p,160)}">${coverTexture(p.emoji,58)}
+      <span style="position:relative">${p.emoji}</span></div>
     <div class="pad" style="position:relative">
       <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.8px;margin:0 0 8px">${p.t}</h1>
       <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge flare">${p.date}</span><span class="badge">${p.time}</span><span class="badge">${p.budget}</span></div>
@@ -1339,7 +1392,9 @@ function openChatFromPlan(){closePage('page-plan');setTimeout(()=>{go('messages'
 /* ============================== AI PLAN BUILDER ============================== */
 function fillAI(t){$('#ai-input').value=t;}
 function runAIPlan(){
-  const txt=($('#ai-input').value||'').trim()||'Five of us Saturday — Mexican food then something fun. Under $50 each.';
+  const el=$('#ai-input');
+  const txt=((el&&el.value)||window._aiTxt||'').trim()||'Five of us Saturday — Mexican food then something fun. Under $50 each.';
+  window._aiTxt=txt;
   const body=$('#ai-plan-body');
   body.innerHTML=`<h3 style="margin-bottom:14px">Building your night…</h3>
     <div class="thinking"><span class="orb"></span><span style="flex:1">
@@ -1351,29 +1406,42 @@ function runAIPlan(){
   let i=0;const tick=setInterval(()=>{i++;if(i<steps.length)$('#ai-step').textContent=steps[i];},420);
   setTimeout(()=>{
     clearInterval(tick);
-    const draft={t:'Saturday Night',emoji:'🌮',date:'Saturday, Sep 5',time:'7:00 PM',g:['#2B1A14','#FF8F6B'],
+    const t=txt.toLowerCase();
+    const guess = /famil|mom|dad|sunday dinner/.test(t) ? 'firstLight'
+                : /active|free|outside|park|walk|hike/.test(t) ? 'parkDay'
+                : /taco|mexican|food|dinner|eat/.test(t) ? 'emberRoom'
+                : 'lateNight';
+    window._draft={t:'Saturday Night',emoji:'🌮',date:'Saturday, Sep 5',time:'7:00 PM',cover:guess,
       loc:'Taqueria Luz · Bishop Arts',people:['you','sarah','mike','jordan','tasha','leo'],budget:'$43/person',
       items:[{time:'7:00 PM',n:'Dinner',s:'Taqueria Luz · Bishop Arts',e:'🌮'},
              {time:'8:30 PM',n:'Bowling',s:'Cosmic Bowl · 2 lanes held',e:'🎳'},
              {time:'10:30 PM',n:'Dessert',s:'Sweet Firefly',e:'🍦'}],
       notes:['Under your $50 cap with tip included','Luz takes reservations up to 8 people','Cosmic Bowl gets loud after 11 — dessert first if you want to talk']};
-    body.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h3>${draft.t} ${draft.emoji}</h3><button class="badge ai" onclick="runAIPlan()">Redo</button></div>
-      <div class="meta" style="margin-bottom:16px">${draft.date} · 6 people · everything within 1.4 miles</div>
-      <ul class="tl">${draft.items.map(i=>`<li><span class="node"></span><span class="t">${i.time}</span>
-        <span class="n">${i.e} ${i.n}<small>${i.s}</small></span></li>`).join('')}</ul>
-      <div class="card" style="margin:18px 0;padding:15px;display:flex;align-items:center;justify-content:space-between">
-        <div><div class="meta">Estimated per person</div>
-          <div class="money"><span style="font-size:20px;font-weight:700">$</span><b>43</b></div></div>
-        <div style="text-align:right"><div class="meta">Your cap</div><div style="font-size:15px;font-weight:750;color:var(--live)">$50 · under by $7</div></div>
-      </div>
-      <ul class="notes" style="margin-bottom:16px">${draft.notes.map(n=>`<li>${n}</li>`).join('')}</ul>
-      <div style="display:flex;gap:9px">
-        <button class="btn btn-ghost" style="flex:0 0 auto;padding:0 18px" onclick="closeAll()">Not it</button>
-        <button class="btn btn-primary" style="flex:1" onclick="commitAI()">Create plan</button></div>`;
-    window._draft=draft;
+    renderDraft();
   },1750);
+}
+function setDraftCover(id){window._draft.cover=id;renderDraft();}
+function renderDraft(){
+  const d=window._draft;
+  $('#ai-plan-body').innerHTML=`
+    <div class="coverwrap" style="height:132px;border-radius:22px;margin-bottom:16px;background:${coverGrad(d,160)}">
+      ${coverTexture(d.emoji,44)}<span style="position:relative;font-size:46px">${d.emoji}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3>${d.t} ${d.emoji}</h3><button class="badge ai" onclick="runAIPlan()">Redo</button></div>
+    <div class="meta" style="margin-bottom:16px">${d.date} · 6 people · everything within 1.4 miles</div>
+    <ul class="tl">${d.items.map(i=>`<li><span class="node"></span><span class="t">${i.time}</span>
+      <span class="n">${i.e} ${i.n}<small>${i.s}</small></span></li>`).join('')}</ul>
+    <div class="card" style="margin:18px 0;padding:15px;display:flex;align-items:center;justify-content:space-between">
+      <div><div class="meta">Estimated per person</div>
+        <div class="money"><span style="font-size:20px;font-weight:700">$</span><b>43</b></div></div>
+      <div style="text-align:right"><div class="meta">Your cap</div><div style="font-size:15px;font-weight:750;color:var(--live)">$50 · under by $7</div></div>
+    </div>
+    <ul class="notes" style="margin-bottom:14px">${d.notes.map(n=>`<li>${n}</li>`).join('')}</ul>
+    <div class="field"><label>Cover · Rally picked one, swap it if you want</label>
+      ${coverRail(d.cover,d.emoji,'setDraftCover')}</div>
+    <div style="display:flex;gap:9px;margin-top:4px">
+      <button class="btn btn-ghost" style="flex:0 0 auto;padding:0 18px" onclick="closeAll()">Not it</button>
+      <button class="btn btn-primary" style="flex:1" onclick="commitAI()">Create plan</button></div>`;
 }
 function commitAI(){
   const d=window._draft;
@@ -1394,10 +1462,11 @@ function resetAISheet(){
 }
 
 /* ============================== MANUAL CREATE ============================== */
-let NEW={step:0,name:'',emoji:'🍕',day:'Fri 4',start:'7:00 PM',end:'11:00 PM',loc:'',people:[],desc:'',
+let NEW={step:0,name:'',emoji:'🍕',cover:'lateNight',day:'Fri 4',start:'7:00 PM',end:'11:00 PM',loc:'',people:[],desc:'',
   items:[{time:'7:00 PM',n:'Dinner',s:'',e:'🍽'}],budget:35,rsvp:true};
-function resetNew(pre){NEW={step:0,name:'',emoji:'🍕',day:'Fri 4',start:'7:00 PM',end:'11:00 PM',loc:'',
+function resetNew(pre){NEW={step:0,name:'',emoji:'🍕',cover:'lateNight',day:'Fri 4',start:'7:00 PM',end:'11:00 PM',loc:'',
   people:pre?[pre]:[],desc:'',items:[{time:'7:00 PM',n:'Dinner',s:'',e:'🍽'}],budget:35,rsvp:true};renderNew();}
+function setNewCover(id){NEW.cover=id;renderNew();}
 const DAYS=[['Tue','1'],['Wed','2'],['Thu','3'],['Fri','4'],['Sat','5'],['Sun','6'],['Mon','7']];
 const EMOJIS=['🍕','🎳','🎬','🏀','🌮','🎵','🌳','🎂'];
 function renderNew(){
@@ -1411,6 +1480,9 @@ function renderNew(){
         <input class="input" id="n-name" value="${NEW.name}" placeholder="Friday Night" oninput="NEW.name=this.value"/></div>
       <div class="field"><label>Vibe</label>
         <div class="selrow">${EMOJIS.map(e=>`<button class="selchip ${NEW.emoji===e?'on':''}" style="padding:0 14px;font-size:19px" onclick="NEW.emoji='${e}';renderNew()">${e}</button>`).join('')}</div></div>
+      <div class="field"><label>Cover</label>
+        ${coverRail(NEW.cover,NEW.emoji,'setNewCover')}
+        <div class="meta" style="margin-top:8px">This is what your crew sees when the plan lands in the chat.</div></div>
       <div class="field"><label>Day</label>
         <div class="picker">${DAYS.map(d=>`<button class="dchip ${NEW.day===d[0]+' '+d[1]?'on':''}" onclick="NEW.day='${d[0]} ${d[1]}';renderNew()">
           <small>${d[0]}</small><b>${d[1]}</b></button>`).join('')}</div></div>
@@ -1455,7 +1527,7 @@ function nextNew(){
   const d=DAYS.find(x=>NEW.day===x[0]+' '+x[1]);
   const full={Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday',Mon:'Monday'}[d[0]];
   const p={id:'p'+Date.now(),t:NEW.name||'Untitled plan',emoji:NEW.emoji,date:full+', Sep '+d[1],time:NEW.start,
-    g:['#2B1A3A','#8B7BFF'],state:'upcoming',loc:NEW.loc||'Location to be decided',chat:'c-weekend',
+    cover:NEW.cover,state:'upcoming',loc:NEW.loc||'Location to be decided',chat:'c-weekend',
     people:['you',...NEW.people],yes:['you'],budget:NEW.budget?'$'+NEW.budget+'/person':'Free',
     items:NEW.items.filter(i=>i.n).map(i=>({...i,s:i.s||NEW.loc||'TBD',e:i.e||'✨'})),
     notes:NEW.desc?[NEW.desc]:[]};
